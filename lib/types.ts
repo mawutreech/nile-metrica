@@ -157,4 +157,5 @@ export type HeroStat = {
   label: string;
   value: string;
   period: string;
+  href: string;
 };

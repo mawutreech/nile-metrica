@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/common/Container";
 import { getHeroStats } from "@/lib/queries";
 
@@ -44,16 +44,20 @@ export async function Hero() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             {stats.map((stat) => (
-              <div
+              <Link
                 key={stat.label}
-                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+                href={stat.href}
+                className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
               >
-                <p className="text-sm font-medium text-slate-500">{stat.label}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-sm font-medium text-slate-500">{stat.label}</p>
+                  <ArrowUpRight className="h-5 w-5 text-slate-400 transition group-hover:text-slate-700" />
+                </div>
                 <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-900">
                   {stat.value}
                 </p>
                 <p className="mt-2 text-sm text-slate-500">{stat.period}</p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

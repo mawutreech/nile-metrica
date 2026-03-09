@@ -455,6 +455,7 @@ export async function getHeroStats(): Promise<HeroStat[]> {
           label: config.label,
           value: "—",
           period: "No data yet",
+          href: `/indicators/${config.slug}`,
         };
       }
 
@@ -466,6 +467,7 @@ export async function getHeroStats(): Promise<HeroStat[]> {
           label: config.label,
           value: "—",
           period: "No data yet",
+          href: `/indicators/${config.slug}`,
         };
       }
 
@@ -473,6 +475,7 @@ export async function getHeroStats(): Promise<HeroStat[]> {
         label: config.label,
         value: config.format(latestPoint.value),
         period: `${config.periodPrefix}${latestPoint.label}`,
+        href: `/indicators/${config.slug}`,
       };
     })
   );
