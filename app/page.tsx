@@ -5,6 +5,7 @@ import { ThemeShortcutStrip } from "@/components/home/ThemeShortcutStrip";
 import { PortalSummaryRow } from "@/components/home/PortalSummaryRow";
 import { FeaturedIndicators } from "@/components/home/FeaturedIndicators";
 import { ThemeGrid } from "@/components/home/ThemeGrid";
+import { MapSnapshot } from "@/components/home/MapSnapshot";
 import { LatestPublications } from "@/components/home/LatestPublications";
 
 export default function HomePage() {
@@ -17,6 +18,7 @@ export default function HomePage() {
       <PortalSummaryRow />
       <FeaturedIndicators />
       <ThemeGrid />
+      <MapSnapshot />
       <LatestPublications />
     </>
   );
