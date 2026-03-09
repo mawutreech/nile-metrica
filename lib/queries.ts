@@ -10,6 +10,7 @@ import {
   SupabasePublicationDetail,
   SupabaseTheme,
   ThemePageIndicator,
+  HeroStat,
 } from "./types";
 
 export async function getIndicatorBySlug(slug: string): Promise<SupabaseIndicatorDetail | null> {
@@ -26,12 +27,16 @@ export async function getIndicatorBySlug(slug: string): Promise<SupabaseIndicato
       theme:themes(name)
     `)
     .eq("slug", slug)
-    .single();
+    .maybeSingle();
 
-  if (error || !data) {
-    console.error("Error fetching indicator:", error);
-    return null;
-  }
+ if (error) {
+  console.error("Error fetching indicator:", error);
+  return null;
+}
+
+if (!data) {
+  return null;
+}
 
   return data as unknown as SupabaseIndicatorDetail;
 }
@@ -411,4 +416,66 @@ export async function searchIndicators(query: string): Promise<IndicatorCardData
   );
 
   return results.filter((item): item is IndicatorCardData => item !== null);
+}
+
+export async function getHeroStats(): Promise<HeroStat[]> {
+  const configs = [
+    {
+      slug: "population-total",
+      label: "Population",
+      format: (value: number) => `${value}M`,
+      periodPrefix: "Estimated, ",
+    },
+    {
+      slug: "inflation-rate",
+      label: "Inflation",
+      format: (value: number) => `${value}%`,
+      periodPrefix: "",
+    },
+    {
+      slug: "school-enrolment-rate",
+      label: "School Enrolment",
+      format: (value: number) => `${value}%`,
+      periodPrefix: "",
+    },
+    {
+      slug: "vaccination-coverage",
+      label: "Vaccination Coverage",
+      format: (value: number) => `${value}%`,
+      periodPrefix: "",
+    },
+  ];
+
+  const results = await Promise.all(
+    configs.map(async (config) => {
+      const indicator = await getIndicatorBySlug(config.slug);
+
+      if (!indicator) {
+        return {
+          label: config.label,
+          value: "—",
+          period: "No data yet",
+        };
+      }
+
+      const series = await getIndicatorSeries(indicator.id);
+      const latestPoint = series.length > 0 ? series[series.length - 1] : null;
+
+      if (!latestPoint) {
+        return {
+          label: config.label,
+          value: "—",
+          period: "No data yet",
+        };
+      }
+
+      return {
+        label: config.label,
+        value: config.format(latestPoint.value),
+        period: `${config.periodPrefix}${latestPoint.label}`,
+      };
+    })
+  );
+
+  return results;
 }

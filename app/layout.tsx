@@ -4,8 +4,14 @@ import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
 
 export const metadata: Metadata = {
-  title: "Nile Metrika",
+  title: {
+    default: "Nile Metrika",
+    template: "%s | Nile Metrika",
+  },
   description: "South Sudan's public statistics and data portal.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

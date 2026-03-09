@@ -152,3 +152,9 @@ export type SupabasePublicationDetail = {
   type: string | null;
   file_url: string | null;
 };
+
+export type HeroStat = {
+  label: string;
+  value: string;
+  period: string;
+};
