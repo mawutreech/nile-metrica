@@ -11,6 +11,7 @@ import {
   SupabaseTheme,
   ThemePageIndicator,
   HeroStat,
+  PortalSummaryStat,
 } from "./types";
 
 export async function getIndicatorBySlug(slug: string): Promise<SupabaseIndicatorDetail | null> {
@@ -481,4 +482,30 @@ export async function getHeroStats(): Promise<HeroStat[]> {
   );
 
   return results;
+}
+
+export async function getPortalSummaryStats(): Promise<PortalSummaryStat[]> {
+  const [
+    { count: themesCount, error: themesError },
+    { count: indicatorsCount, error: indicatorsError },
+    { count: datasetsCount, error: datasetsError },
+    { count: publicationsCount, error: publicationsError },
+  ] = await Promise.all([
+    supabase.from("themes").select("*", { count: "exact", head: true }),
+    supabase.from("indicators").select("*", { count: "exact", head: true }),
+    supabase.from("datasets").select("*", { count: "exact", head: true }),
+    supabase.from("publications").select("*", { count: "exact", head: true }),
+  ]);
+
+  if (themesError) console.error("Error counting themes:", themesError);
+  if (indicatorsError) console.error("Error counting indicators:", indicatorsError);
+  if (datasetsError) console.error("Error counting datasets:", datasetsError);
+  if (publicationsError) console.error("Error counting publications:", publicationsError);
+
+  return [
+    { label: "Themes", value: String(themesCount ?? 0) },
+    { label: "Indicators", value: String(indicatorsCount ?? 0) },
+    { label: "Datasets", value: String(datasetsCount ?? 0) },
+    { label: "Publications", value: String(publicationsCount ?? 0) },
+  ];
 }

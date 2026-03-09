@@ -159,3 +159,8 @@ export type HeroStat = {
   period: string;
   href: string;
 };
+
+export type PortalSummaryStat = {
+  label: string;
+  value: string;
+};
