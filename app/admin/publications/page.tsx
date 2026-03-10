@@ -1,19 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/server";
+import { requireRole } from "@/lib/auth";
 
 async function deletePublication(formData: FormData) {
   "use server";
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin"]);
 
   const id = String(formData.get("id") || "").trim();
 
@@ -34,19 +26,11 @@ async function deletePublication(formData: FormData) {
 }
 
 export default async function AdminPublicationsPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { profile, supabase } = await requireRole(["admin", "editor", "viewer"]);
 
   const { data: publications, error } = await supabase
     .from("publications")
-    .select("id, title, slug, summary, publication_date, type")
+    .select("id, title, slug, summary, publication_date, type, file_url")
     .order("publication_date", { ascending: false });
 
   return (
@@ -61,12 +45,14 @@ export default async function AdminPublicationsPage() {
           </p>
         </div>
 
-        <Link
-          href="/admin/publications/new"
-          className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-medium text-white transition hover:bg-emerald-800"
-        >
-          New publication
-        </Link>
+        {profile.role !== "viewer" ? (
+          <Link
+            href="/admin/publications/new"
+            className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-medium text-white transition hover:bg-emerald-800"
+          >
+            New publication
+          </Link>
+        ) : null}
       </div>
 
       <div className="mt-10 rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -99,31 +85,48 @@ export default async function AdminPublicationsPage() {
                   <p className="mt-2 text-xs text-slate-400">
                     /publications/{publication.slug}
                   </p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    File: {publication.file_url ? "Uploaded" : "No file yet"}
+                  </p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Link
                     href={`/publications/${publication.slug}`}
                     className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
                   >
                     View
                   </Link>
-                  <Link
-                    href={`/admin/publications/${publication.id}/edit`}
-                    className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
-                  >
-                    Edit
-                  </Link>
 
-                  <form action={deletePublication}>
-                    <input type="hidden" name="id" value={publication.id} />
-                    <button
-                      type="submit"
-                      className="rounded-xl border border-rose-200 px-3 py-2 text-sm text-rose-700 transition hover:bg-rose-50"
-                    >
-                      Delete
-                    </button>
-                  </form>
+                  {profile.role !== "viewer" ? (
+                    <>
+                      <Link
+                        href={`/admin/publications/${publication.id}/edit`}
+                        className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                      >
+                        Edit
+                      </Link>
+
+                      <Link
+                        href={`/admin/publications/${publication.id}/upload`}
+                        className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                      >
+                        Upload file
+                      </Link>
+                    </>
+                  ) : null}
+
+                  {profile.role === "admin" ? (
+                    <form action={deletePublication}>
+                      <input type="hidden" name="id" value={publication.id} />
+                      <button
+                        type="submit"
+                        className="rounded-xl border border-rose-200 px-3 py-2 text-sm text-rose-700 transition hover:bg-rose-50"
+                      >
+                        Delete
+                      </button>
+                    </form>
+                  ) : null}
                 </div>
               </div>
             ))}

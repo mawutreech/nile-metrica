@@ -1,18 +1,10 @@
 import { redirect, notFound } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { requireRole } from "@/lib/auth";
 
 async function updatePublication(id: string, formData: FormData) {
   "use server";
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin", "editor"]);
 
   const title = String(formData.get("title") || "").trim();
   const slug = String(formData.get("slug") || "").trim();
@@ -25,7 +17,7 @@ async function updatePublication(id: string, formData: FormData) {
     throw new Error("Title and slug are required.");
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("publications")
     .update({
       title,
@@ -35,10 +27,16 @@ async function updatePublication(id: string, formData: FormData) {
       type: type || null,
       file_url: file_url || null,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id")
+    .single();
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (!data) {
+    throw new Error("Update failed. No publication row was updated.");
   }
 
   redirect("/admin/publications");
@@ -51,15 +49,7 @@ export default async function EditPublicationPage({
 }) {
   const { id } = await params;
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin", "editor"]);
 
   const { data: publication, error } = await supabase
     .from("publications")

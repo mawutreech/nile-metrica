@@ -1,19 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/server";
+import { requireRole } from "@/lib/auth";
 
 async function deleteIndicator(formData: FormData) {
   "use server";
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin"]);
 
   const id = String(formData.get("id") || "").trim();
 
@@ -34,15 +26,7 @@ async function deleteIndicator(formData: FormData) {
 }
 
 export default async function AdminIndicatorsPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { profile, supabase } = await requireRole(["admin", "editor", "viewer"]);
 
   const { data: indicators, error } = await supabase
     .from("indicators")
@@ -71,12 +55,14 @@ export default async function AdminIndicatorsPage() {
           </p>
         </div>
 
-        <Link
-          href="/admin/indicators/new"
-          className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-medium text-white transition hover:bg-emerald-800"
-        >
-          New indicator
-        </Link>
+        {profile.role !== "viewer" ? (
+          <Link
+            href="/admin/indicators/new"
+            className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-medium text-white transition hover:bg-emerald-800"
+          >
+            New indicator
+          </Link>
+        ) : null}
       </div>
 
       <div className="mt-10 rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -132,28 +118,35 @@ export default async function AdminIndicatorsPage() {
                     >
                       View
                     </Link>
-                    <Link
-                      href={`/admin/indicators/${indicator.id}/values`}
-                      className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
-                    >
-                      Values
-                    </Link>
-                    <Link
-                      href={`/admin/indicators/${indicator.id}/edit`}
-                      className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
-                    >
-                      Edit
-                    </Link>
 
-                    <form action={deleteIndicator}>
-                      <input type="hidden" name="id" value={indicator.id} />
-                      <button
-                        type="submit"
-                        className="rounded-xl border border-rose-200 px-3 py-2 text-sm text-rose-700 transition hover:bg-rose-50"
-                      >
-                        Delete
-                      </button>
-                    </form>
+                    {profile.role !== "viewer" ? (
+                      <>
+                        <Link
+                          href={`/admin/indicators/${indicator.id}/values`}
+                          className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                        >
+                          Values
+                        </Link>
+                        <Link
+                          href={`/admin/indicators/${indicator.id}/edit`}
+                          className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                        >
+                          Edit
+                        </Link>
+                      </>
+                    ) : null}
+
+                    {profile.role === "admin" ? (
+                      <form action={deleteIndicator}>
+                        <input type="hidden" name="id" value={indicator.id} />
+                        <button
+                          type="submit"
+                          className="rounded-xl border border-rose-200 px-3 py-2 text-sm text-rose-700 transition hover:bg-rose-50"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    ) : null}
                   </div>
                 </div>
               );

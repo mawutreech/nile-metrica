@@ -1,18 +1,10 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { requireRole } from "@/lib/auth";
 
 async function createIndicator(formData: FormData) {
   "use server";
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin", "editor"]);
 
   const code = String(formData.get("code") || "").trim();
   const name = String(formData.get("name") || "").trim();
@@ -46,15 +38,7 @@ async function createIndicator(formData: FormData) {
 }
 
 export default async function NewIndicatorPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin", "editor"]);
 
   const [{ data: themes }, { data: agencies }] = await Promise.all([
     supabase.from("themes").select("id, name").order("name"),

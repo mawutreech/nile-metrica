@@ -1,18 +1,10 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { requireRole } from "@/lib/auth";
 
 async function createDataset(formData: FormData) {
   "use server";
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin", "editor"]);
 
   const title = String(formData.get("title") || "").trim();
   const slug = String(formData.get("slug") || "").trim();
@@ -48,15 +40,7 @@ async function createDataset(formData: FormData) {
 }
 
 export default async function NewDatasetPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin", "editor"]);
 
   const [{ data: themes }, { data: agencies }] = await Promise.all([
     supabase.from("themes").select("id, name").order("name"),

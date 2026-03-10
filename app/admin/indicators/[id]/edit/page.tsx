@@ -1,18 +1,10 @@
 import { redirect, notFound } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { requireRole } from "@/lib/auth";
 
 async function updateIndicator(id: string, formData: FormData) {
   "use server";
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin", "editor"]);
 
   const code = String(formData.get("code") || "").trim();
   const name = String(formData.get("name") || "").trim();
@@ -61,15 +53,7 @@ export default async function EditIndicatorPage({
 }) {
   const { id } = await params;
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin", "editor"]);
 
   const [
     { data: indicator, error },

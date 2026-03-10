@@ -1,18 +1,10 @@
 import { redirect, notFound } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { requireRole } from "@/lib/auth";
 
 async function updateDataset(id: string, formData: FormData) {
   "use server";
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin", "editor"]);
 
   const title = String(formData.get("title") || "").trim();
   const slug = String(formData.get("slug") || "").trim();
@@ -63,15 +55,7 @@ export default async function EditDatasetPage({
 }) {
   const { id } = await params;
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin", "editor"]);
 
   const [
     { data: dataset, error },

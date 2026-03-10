@@ -1,18 +1,10 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { requireRole } from "@/lib/auth";
 
 async function createPublication(formData: FormData) {
   "use server";
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin", "editor"]);
 
   const title = String(formData.get("title") || "").trim();
   const slug = String(formData.get("slug") || "").trim();
@@ -42,15 +34,7 @@ async function createPublication(formData: FormData) {
 }
 
 export default async function NewPublicationPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  await requireRole(["admin", "editor"]);
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
@@ -61,7 +45,10 @@ export default async function NewPublicationPage() {
         Add a new report, bulletin, factsheet, or publication.
       </p>
 
-      <form action={createPublication} className="mt-10 space-y-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+      <form
+        action={createPublication}
+        className="mt-10 space-y-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm"
+      >
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-900">
             Title

@@ -1,19 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/server";
+import { requireRole } from "@/lib/auth";
 
 async function deleteDataset(formData: FormData) {
   "use server";
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin"]);
 
   const id = String(formData.get("id") || "").trim();
 
@@ -34,15 +26,7 @@ async function deleteDataset(formData: FormData) {
 }
 
 export default async function AdminDatasetsPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { profile, supabase } = await requireRole(["admin", "editor", "viewer"]);
 
   const { data: datasets, error } = await supabase
     .from("datasets")
@@ -72,12 +56,14 @@ export default async function AdminDatasetsPage() {
           </p>
         </div>
 
-        <Link
-          href="/admin/datasets/new"
-          className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-medium text-white transition hover:bg-emerald-800"
-        >
-          New dataset
-        </Link>
+        {profile.role !== "viewer" ? (
+          <Link
+            href="/admin/datasets/new"
+            className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-medium text-white transition hover:bg-emerald-800"
+          >
+            New dataset
+          </Link>
+        ) : null}
       </div>
 
       <div className="mt-10 rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -91,67 +77,84 @@ export default async function AdminDatasetsPage() {
           </div>
         ) : datasets && datasets.length > 0 ? (
           <div className="divide-y divide-slate-100">
-           {datasets.map((dataset) => {
-  const themeName = Array.isArray(dataset.theme)
-  ? dataset.theme[0]?.name
-  : undefined;
+            {datasets.map((dataset) => {
+              const themeName = Array.isArray(dataset.theme)
+                ? dataset.theme[0]?.name
+                : undefined;
 
-const sourceAgencyName = Array.isArray(dataset.source_agency)
-  ? dataset.source_agency[0]?.name
-  : undefined;
+              const sourceAgencyName = Array.isArray(dataset.source_agency)
+                ? dataset.source_agency[0]?.name
+                : undefined;
 
-  return (
-    <div
-      key={dataset.id}
-      className="flex flex-col gap-3 px-6 py-5 md:flex-row md:items-start md:justify-between"
-    >
-      <div>
-        <h3 className="text-lg font-semibold text-slate-900">
-          {dataset.title}
-        </h3>
-        <p className="mt-1 text-sm text-slate-500">
-          {themeName || "Uncategorized"} •{" "}
-          {dataset.format || "Unknown"} • Updated{" "}
-          {dataset.update_date || "N/A"}
-        </p>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-          {dataset.description || "No description available."}
-        </p>
-        <p className="mt-2 text-xs text-slate-400">
-          /datasets/{dataset.slug}
-        </p>
-        <p className="mt-1 text-xs text-slate-400">
-          Source: {sourceAgencyName || "Unknown"}
-        </p>
-      </div>
+              return (
+                <div
+                  key={dataset.id}
+                  className="flex flex-col gap-3 px-6 py-5 md:flex-row md:items-start md:justify-between"
+                >
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900">
+                      {dataset.title}
+                    </h3>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {themeName || "Uncategorized"} •{" "}
+                      {dataset.format || "Unknown"} • Updated{" "}
+                      {dataset.update_date || "N/A"}
+                    </p>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                      {dataset.description || "No description available."}
+                    </p>
+                    <p className="mt-2 text-xs text-slate-400">
+                      /datasets/{dataset.slug}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      Source: {sourceAgencyName || "Unknown"}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      File: {dataset.file_url ? "Uploaded" : "No file yet"}
+                    </p>
+                  </div>
 
-      <div className="flex gap-2">
-        <Link
-          href={`/datasets/${dataset.slug}`}
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
-        >
-          View
-        </Link>
-        <Link
-          href={`/admin/datasets/${dataset.id}/edit`}
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
-        >
-          Edit
-        </Link>
+                  <div className="flex flex-wrap gap-2">
+                    <Link
+                      href={`/datasets/${dataset.slug}`}
+                      className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                    >
+                      View
+                    </Link>
 
-        <form action={deleteDataset}>
-          <input type="hidden" name="id" value={dataset.id} />
-          <button
-            type="submit"
-            className="rounded-xl border border-rose-200 px-3 py-2 text-sm text-rose-700 transition hover:bg-rose-50"
-          >
-            Delete
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-})}
+                    {profile.role !== "viewer" ? (
+                      <>
+                        <Link
+                          href={`/admin/datasets/${dataset.id}/edit`}
+                          className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                        >
+                          Edit
+                        </Link>
+
+                        <Link
+                          href={`/admin/datasets/${dataset.id}/upload`}
+                          className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                        >
+                          Upload file
+                        </Link>
+                      </>
+                    ) : null}
+
+                    {profile.role === "admin" ? (
+                      <form action={deleteDataset}>
+                        <input type="hidden" name="id" value={dataset.id} />
+                        <button
+                          type="submit"
+                          className="rounded-xl border border-rose-200 px-3 py-2 text-sm text-rose-700 transition hover:bg-rose-50"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="px-6 py-6 text-sm text-slate-600">

@@ -1,19 +1,11 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/server";
+import { requireRole } from "@/lib/auth";
 
 async function createIndicatorValue(indicatorId: string, formData: FormData) {
   "use server";
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin", "editor"]);
 
   const yearRaw = String(formData.get("year") || "").trim();
   const valueRaw = String(formData.get("value") || "").trim();
@@ -49,15 +41,7 @@ async function createIndicatorValue(indicatorId: string, formData: FormData) {
 async function deleteIndicatorValue(formData: FormData) {
   "use server";
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin"]);
 
   const id = String(formData.get("id") || "").trim();
   const indicatorId = String(formData.get("indicator_id") || "").trim();
@@ -85,15 +69,7 @@ export default async function IndicatorValuesPage({
 }) {
   const { id } = await params;
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase } = await requireRole(["admin", "editor"]);
 
   const [
     { data: indicator, error: indicatorError },
