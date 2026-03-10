@@ -285,20 +285,29 @@ export default async function IndicatorValuesPage({
                           {geographyName || "N/A"}
                         </td>
                         <td className="px-6 py-4">
-                          <form action={deleteIndicatorValue}>
-                            <input type="hidden" name="id" value={row.id} />
-                            <input
-                              type="hidden"
-                              name="indicator_id"
-                              value={id}
-                            />
-                            <button
-                              type="submit"
-                              className="rounded-xl border border-rose-200 px-3 py-2 text-sm text-rose-700 transition hover:bg-rose-50"
+                          <div className="flex gap-2">
+                            <Link
+                              href={`/admin/indicators/${id}/values/${row.id}/edit`}
+                              className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
                             >
-                              Delete
-                            </button>
-                          </form>
+                              Edit
+                            </Link>
+
+                            <form action={deleteIndicatorValue}>
+                              <input type="hidden" name="id" value={row.id} />
+                              <input
+                                type="hidden"
+                                name="indicator_id"
+                                value={id}
+                              />
+                              <button
+                                type="submit"
+                                className="rounded-xl border border-rose-200 px-3 py-2 text-sm text-rose-700 transition hover:bg-rose-50"
+                              >
+                                Delete
+                              </button>
+                            </form>
+                          </div>
                         </td>
                       </tr>
                     );
