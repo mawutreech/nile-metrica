@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/auth";
 async function createIndicatorValue(indicatorId: string, formData: FormData) {
   "use server";
 
-  const { supabase } = await requireRole(["admin", "editor"]);
+  const { supabase, user } = await requireRole(["admin", "editor"]);
 
   const yearRaw = String(formData.get("year") || "").trim();
   const valueRaw = String(formData.get("value") || "").trim();
@@ -29,6 +29,8 @@ async function createIndicatorValue(indicatorId: string, formData: FormData) {
     year,
     value,
     date: date || null,
+    created_by: user.id,
+    updated_by: user.id,
   });
 
   if (error) {
@@ -223,21 +225,11 @@ export default async function IndicatorValuesPage({
               <table className="min-w-full divide-y divide-slate-200 text-sm">
                 <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-6 py-3 text-left font-medium text-slate-600">
-                      Year
-                    </th>
-                    <th className="px-6 py-3 text-left font-medium text-slate-600">
-                      Value
-                    </th>
-                    <th className="px-6 py-3 text-left font-medium text-slate-600">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left font-medium text-slate-600">
-                      Geography
-                    </th>
-                    <th className="px-6 py-3 text-left font-medium text-slate-600">
-                      Action
-                    </th>
+                    <th className="px-6 py-3 text-left font-medium text-slate-600">Year</th>
+                    <th className="px-6 py-3 text-left font-medium text-slate-600">Value</th>
+                    <th className="px-6 py-3 text-left font-medium text-slate-600">Date</th>
+                    <th className="px-6 py-3 text-left font-medium text-slate-600">Geography</th>
+                    <th className="px-6 py-3 text-left font-medium text-slate-600">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
@@ -248,15 +240,11 @@ export default async function IndicatorValuesPage({
 
                     return (
                       <tr key={row.id}>
-                        <td className="px-6 py-4 text-slate-700">
-                          {row.year ?? "N/A"}
-                        </td>
+                        <td className="px-6 py-4 text-slate-700">{row.year ?? "N/A"}</td>
                         <td className="px-6 py-4 text-slate-700">
                           {row.value} {indicator.unit || ""}
                         </td>
-                        <td className="px-6 py-4 text-slate-700">
-                          {row.date || "N/A"}
-                        </td>
+                        <td className="px-6 py-4 text-slate-700">{row.date || "N/A"}</td>
                         <td className="px-6 py-4 text-slate-700">
                           {geographyName || "N/A"}
                         </td>
@@ -271,11 +259,7 @@ export default async function IndicatorValuesPage({
 
                             <form action={deleteIndicatorValue}>
                               <input type="hidden" name="id" value={row.id} />
-                              <input
-                                type="hidden"
-                                name="indicator_id"
-                                value={id}
-                              />
+                              <input type="hidden" name="indicator_id" value={id} />
                               <button
                                 type="submit"
                                 className="rounded-xl border border-rose-200 px-3 py-2 text-sm text-rose-700 transition hover:bg-rose-50"

@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/auth";
 async function updateIndicator(id: string, formData: FormData) {
   "use server";
 
-  const { supabase } = await requireRole(["admin", "editor"]);
+  const { supabase, user } = await requireRole(["admin", "editor"]);
 
   const code = String(formData.get("code") || "").trim();
   const name = String(formData.get("name") || "").trim();
@@ -30,6 +30,7 @@ async function updateIndicator(id: string, formData: FormData) {
       frequency: frequency || null,
       source_agency_id: source_agency_id || null,
       description: description || null,
+      updated_by: user.id,
     })
     .eq("id", id)
     .select("id")

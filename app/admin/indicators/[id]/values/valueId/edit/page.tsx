@@ -9,7 +9,7 @@ async function updateIndicatorValue(
 ) {
   "use server";
 
-  const { supabase } = await requireRole(["admin", "editor"]);
+  const { supabase, user } = await requireRole(["admin", "editor"]);
 
   const yearRaw = String(formData.get("year") || "").trim();
   const valueRaw = String(formData.get("value") || "").trim();
@@ -34,6 +34,7 @@ async function updateIndicatorValue(
       value,
       geographic_unit_id: geographic_unit_id || null,
       date: date || null,
+      updated_by: user.id,
     })
     .eq("id", valueId)
     .eq("indicator_id", indicatorId)

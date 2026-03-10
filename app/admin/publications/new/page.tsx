@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/auth";
 async function createPublication(formData: FormData) {
   "use server";
 
-  const { supabase } = await requireRole(["admin", "editor"]);
+  const { supabase, user } = await requireRole(["admin", "editor"]);
 
   const title = String(formData.get("title") || "").trim();
   const slug = String(formData.get("slug") || "").trim();
@@ -24,6 +24,8 @@ async function createPublication(formData: FormData) {
     publication_date: publication_date || null,
     type: type || null,
     file_url: file_url || null,
+    created_by: user.id,
+    updated_by: user.id,
   });
 
   if (error) {

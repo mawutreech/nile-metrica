@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 
-export async function requireRole(allowedRoles: Array<"admin" | "editor" | "viewer">) {
+export async function requireRole(
+  allowedRoles: Array<"admin" | "editor" | "viewer">
+) {
   const supabase = await createClient();
 
   const {
