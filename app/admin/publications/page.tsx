@@ -30,7 +30,9 @@ export default async function AdminPublicationsPage() {
 
   const { data: publications, error } = await supabase
     .from("publications")
-    .select("id, title, slug, summary, publication_date, type, file_url")
+    .select(
+      "id, title, slug, summary, publication_date, type, file_url, created_by, updated_by, created_at, updated_at"
+    )
     .order("publication_date", { ascending: false });
 
   return (
@@ -69,9 +71,9 @@ export default async function AdminPublicationsPage() {
             {publications.map((publication) => (
               <div
                 key={publication.id}
-                className="flex flex-col gap-3 px-6 py-5 md:flex-row md:items-start md:justify-between"
+                className="flex flex-col gap-4 px-6 py-5 md:flex-row md:items-start md:justify-between"
               >
-                <div>
+                <div className="min-w-0">
                   <h3 className="text-lg font-semibold text-slate-900">
                     {publication.title}
                   </h3>
@@ -88,6 +90,13 @@ export default async function AdminPublicationsPage() {
                   <p className="mt-1 text-xs text-slate-400">
                     File: {publication.file_url ? "Uploaded" : "No file yet"}
                   </p>
+
+                  <div className="mt-3 grid gap-1 text-xs text-slate-400">
+                    <p>Created at: {publication.created_at || "N/A"}</p>
+                    <p>Updated at: {publication.updated_at || "N/A"}</p>
+                    <p>Created by: {publication.created_by || "N/A"}</p>
+                    <p>Updated by: {publication.updated_by || "N/A"}</p>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2">

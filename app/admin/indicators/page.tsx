@@ -38,6 +38,10 @@ export default async function AdminIndicatorsPage() {
       unit,
       frequency,
       description,
+      created_by,
+      updated_by,
+      created_at,
+      updated_at,
       theme:themes(name),
       source_agency:source_agencies(name)
     `)
@@ -88,9 +92,9 @@ export default async function AdminIndicatorsPage() {
               return (
                 <div
                   key={indicator.id}
-                  className="flex flex-col gap-3 px-6 py-5 md:flex-row md:items-start md:justify-between"
+                  className="flex flex-col gap-4 px-6 py-5 md:flex-row md:items-start md:justify-between"
                 >
-                  <div>
+                  <div className="min-w-0">
                     <h3 className="text-lg font-semibold text-slate-900">
                       {indicator.name}
                     </h3>
@@ -109,6 +113,13 @@ export default async function AdminIndicatorsPage() {
                       Code: {indicator.code || "N/A"} • Source:{" "}
                       {sourceAgencyName || "Unknown"}
                     </p>
+
+                    <div className="mt-3 grid gap-1 text-xs text-slate-400">
+                      <p>Created at: {indicator.created_at || "N/A"}</p>
+                      <p>Updated at: {indicator.updated_at || "N/A"}</p>
+                      <p>Created by: {indicator.created_by || "N/A"}</p>
+                      <p>Updated by: {indicator.updated_by || "N/A"}</p>
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
