@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
 import { FlashBanner } from "@/components/admin/FlashBanner";
+import { AdminSearchForm } from "@/components/admin/AdminSearchForm";
 
 async function deleteIndicator(formData: FormData) {
   "use server";
@@ -15,10 +16,7 @@ async function deleteIndicator(formData: FormData) {
     redirect("/admin/indicators?error=missing-id");
   }
 
-  const { error } = await supabase
-    .from("indicators")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("indicators").delete().eq("id", id);
 
   if (error) {
     redirect("/admin/indicators?error=delete-failed");
@@ -58,14 +56,15 @@ function getErrorMessage(error?: string) {
 export default async function AdminIndicatorsPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ success?: string; error?: string }>;
+  searchParams?: Promise<{ success?: string; error?: string; q?: string }>;
 }) {
   const { profile, supabase } = await requireRole(["admin", "editor", "viewer"]);
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const successMessage = getSuccessMessage(resolvedSearchParams?.success);
   const errorMessage = getErrorMessage(resolvedSearchParams?.error);
+  const query = (resolvedSearchParams?.q || "").trim();
 
-  const { data: indicators, error } = await supabase
+  let indicatorsQuery = supabase
     .from("indicators")
     .select(`
       id,
@@ -83,6 +82,14 @@ export default async function AdminIndicatorsPage({
       source_agency:source_agencies(name)
     `)
     .order("name", { ascending: true });
+
+  if (query) {
+    indicatorsQuery = indicatorsQuery.or(
+      `name.ilike.%${query}%,slug.ilike.%${query}%,description.ilike.%${query}%,code.ilike.%${query}%,unit.ilike.%${query}%,frequency.ilike.%${query}%`
+    );
+  }
+
+  const { data: indicators, error } = await indicatorsQuery;
 
   let profileMap: Record<string, string> = {};
 
@@ -125,12 +132,19 @@ export default async function AdminIndicatorsPage({
         ) : null}
       </div>
 
+      <AdminSearchForm
+        placeholder="Search indicators by name, code, slug, unit, frequency, or description"
+        defaultValue={query}
+      />
+
       {successMessage ? <FlashBanner kind="success" message={successMessage} /> : null}
       {errorMessage ? <FlashBanner kind="error" message={errorMessage} /> : null}
 
       <div className="mt-10 rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900">Indicators</h2>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Indicators {query ? `(${indicators?.length || 0} results)` : ""}
+          </h2>
         </div>
 
         {error ? (
@@ -228,7 +242,9 @@ export default async function AdminIndicatorsPage({
             })}
           </div>
         ) : (
-          <div className="px-6 py-6 text-sm text-slate-600">No indicators yet.</div>
+          <div className="px-6 py-6 text-sm text-slate-600">
+            {query ? "No matching indicators found." : "No indicators yet."}
+          </div>
         )}
       </div>
     </main>

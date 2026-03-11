@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
 import { FlashBanner } from "@/components/admin/FlashBanner";
+import { AdminSearchForm } from "@/components/admin/AdminSearchForm";
 
 async function deleteDataset(formData: FormData) {
   "use server";
@@ -15,10 +16,7 @@ async function deleteDataset(formData: FormData) {
     redirect("/admin/datasets?error=missing-id");
   }
 
-  const { error } = await supabase
-    .from("datasets")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("datasets").delete().eq("id", id);
 
   if (error) {
     redirect("/admin/datasets?error=delete-failed");
@@ -62,14 +60,15 @@ function getErrorMessage(error?: string) {
 export default async function AdminDatasetsPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ success?: string; error?: string }>;
+  searchParams?: Promise<{ success?: string; error?: string; q?: string }>;
 }) {
   const { profile, supabase } = await requireRole(["admin", "editor", "viewer"]);
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const successMessage = getSuccessMessage(resolvedSearchParams?.success);
   const errorMessage = getErrorMessage(resolvedSearchParams?.error);
+  const query = (resolvedSearchParams?.q || "").trim();
 
-  const { data: datasets, error } = await supabase
+  let datasetsQuery = supabase
     .from("datasets")
     .select(`
       id,
@@ -88,6 +87,14 @@ export default async function AdminDatasetsPage({
       source_agency:source_agencies(name)
     `)
     .order("update_date", { ascending: false });
+
+  if (query) {
+    datasetsQuery = datasetsQuery.or(
+      `title.ilike.%${query}%,slug.ilike.%${query}%,description.ilike.%${query}%,format.ilike.%${query}%`
+    );
+  }
+
+  const { data: datasets, error } = await datasetsQuery;
 
   let profileMap: Record<string, string> = {};
 
@@ -130,12 +137,19 @@ export default async function AdminDatasetsPage({
         ) : null}
       </div>
 
+      <AdminSearchForm
+        placeholder="Search datasets by title, slug, description, or format"
+        defaultValue={query}
+      />
+
       {successMessage ? <FlashBanner kind="success" message={successMessage} /> : null}
       {errorMessage ? <FlashBanner kind="error" message={errorMessage} /> : null}
 
       <div className="mt-10 rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900">Datasets</h2>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Datasets {query ? `(${datasets?.length || 0} results)` : ""}
+          </h2>
         </div>
 
         {error ? (
@@ -163,8 +177,8 @@ export default async function AdminDatasetsPage({
                       {dataset.title}
                     </h3>
                     <p className="mt-1 text-sm text-slate-500">
-                      {themeName || "Uncategorized"} • {dataset.format || "Unknown"} •
-                      {" "}Updated {dataset.update_date || "N/A"}
+                      {themeName || "Uncategorized"} • {dataset.format || "Unknown"} • Updated{" "}
+                      {dataset.update_date || "N/A"}
                     </p>
                     <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
                       {dataset.description || "No description available."}
@@ -235,7 +249,9 @@ export default async function AdminDatasetsPage({
             })}
           </div>
         ) : (
-          <div className="px-6 py-6 text-sm text-slate-600">No datasets yet.</div>
+          <div className="px-6 py-6 text-sm text-slate-600">
+            {query ? "No matching datasets found." : "No datasets yet."}
+          </div>
         )}
       </div>
     </main>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
 import { FlashBanner } from "@/components/admin/FlashBanner";
+import { AdminSearchForm } from "@/components/admin/AdminSearchForm";
 
 async function deletePublication(formData: FormData) {
   "use server";
@@ -15,10 +16,7 @@ async function deletePublication(formData: FormData) {
     redirect("/admin/publications?error=missing-id");
   }
 
-  const { error } = await supabase
-    .from("publications")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("publications").delete().eq("id", id);
 
   if (error) {
     redirect("/admin/publications?error=delete-failed");
@@ -62,19 +60,28 @@ function getErrorMessage(error?: string) {
 export default async function AdminPublicationsPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ success?: string; error?: string }>;
+  searchParams?: Promise<{ success?: string; error?: string; q?: string }>;
 }) {
   const { profile, supabase } = await requireRole(["admin", "editor", "viewer"]);
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const successMessage = getSuccessMessage(resolvedSearchParams?.success);
   const errorMessage = getErrorMessage(resolvedSearchParams?.error);
+  const query = (resolvedSearchParams?.q || "").trim();
 
-  const { data: publications, error } = await supabase
+  let publicationsQuery = supabase
     .from("publications")
     .select(
       "id, title, slug, summary, publication_date, type, file_url, created_by, updated_by, created_at, updated_at"
     )
     .order("publication_date", { ascending: false });
+
+  if (query) {
+    publicationsQuery = publicationsQuery.or(
+      `title.ilike.%${query}%,slug.ilike.%${query}%,summary.ilike.%${query}%,type.ilike.%${query}%`
+    );
+  }
+
+  const { data: publications, error } = await publicationsQuery;
 
   let profileMap: Record<string, string> = {};
 
@@ -119,17 +126,19 @@ export default async function AdminPublicationsPage({
         ) : null}
       </div>
 
-      {successMessage ? (
-        <FlashBanner kind="success" message={successMessage} />
-      ) : null}
+      <AdminSearchForm
+        placeholder="Search publications by title, slug, summary, or type"
+        defaultValue={query}
+      />
 
-      {errorMessage ? (
-        <FlashBanner kind="error" message={errorMessage} />
-      ) : null}
+      {successMessage ? <FlashBanner kind="success" message={successMessage} /> : null}
+      {errorMessage ? <FlashBanner kind="error" message={errorMessage} /> : null}
 
       <div className="mt-10 rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900">Publications</h2>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Publications {query ? `(${publications?.length || 0} results)` : ""}
+          </h2>
         </div>
 
         {error ? (
@@ -217,7 +226,7 @@ export default async function AdminPublicationsPage({
           </div>
         ) : (
           <div className="px-6 py-6 text-sm text-slate-600">
-            No publications yet.
+            {query ? "No matching publications found." : "No publications yet."}
           </div>
         )}
       </div>
