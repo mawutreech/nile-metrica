@@ -67,6 +67,10 @@ function pickFirst(row: Record<string, string>, keys: string[]) {
   return "";
 }
 
+function makeDuplicateKey(year: number, geographicUnitId: string | null) {
+  return `${year}::${geographicUnitId ?? "null"}`;
+}
+
 async function importIndicatorValues(indicatorId: string, formData: FormData) {
   "use server";
 
@@ -97,11 +101,16 @@ async function importIndicatorValues(indicatorId: string, formData: FormData) {
   );
 
   try {
-    const rowsToInsert = parsedRows.map((row) => {
+    const preparedRows = parsedRows.map((row) => {
       const yearRaw = pickFirst(row, ["year", "yr"]);
       const valueRaw = pickFirst(row, ["value", "val"]);
       const dateRaw = pickFirst(row, ["date"]);
-      const geographyRaw = pickFirst(row, ["geography", "geographic_unit", "geo", "location"]);
+      const geographyRaw = pickFirst(row, [
+        "geography",
+        "geographic_unit",
+        "geo",
+        "location",
+      ]);
 
       const year = Number(yearRaw);
       const value = Number(valueRaw);
@@ -116,20 +125,114 @@ async function importIndicatorValues(indicatorId: string, formData: FormData) {
         : null;
 
       return {
-        indicator_id: indicatorId,
         year,
         value,
         date: dateRaw || null,
         geographic_unit_id: geographicUnitId,
-        created_by: user.id,
-        updated_by: user.id,
       };
     });
 
-    const { error } = await supabase.from("indicator_values").insert(rowsToInsert);
+    // Deduplicate inside the CSV itself: later rows override earlier rows
+    const dedupedMap = new Map<
+      string,
+      {
+        year: number;
+        value: number;
+        date: string | null;
+        geographic_unit_id: string | null;
+      }
+    >();
 
-    if (error) {
+    for (const row of preparedRows) {
+      dedupedMap.set(
+        makeDuplicateKey(row.year, row.geographic_unit_id),
+        row
+      );
+    }
+
+    const dedupedRows = Array.from(dedupedMap.values());
+
+    // Load existing values for this indicator
+    const { data: existingValues, error: existingError } = await supabase
+      .from("indicator_values")
+      .select("id, year, geographic_unit_id")
+      .eq("indicator_id", indicatorId);
+
+    if (existingError) {
       redirect(`/admin/indicators/${indicatorId}/values?error=import-failed`);
+    }
+
+    const existingMap = new Map(
+      (existingValues || []).map((row) => [
+        makeDuplicateKey(row.year, row.geographic_unit_id),
+        row.id,
+      ])
+    );
+
+    const rowsToInsert: Array<{
+      indicator_id: string;
+      year: number;
+      value: number;
+      date: string | null;
+      geographic_unit_id: string | null;
+      created_by: string;
+      updated_by: string;
+    }> = [];
+
+    const rowsToUpdate: Array<{
+      id: string;
+      value: number;
+      date: string | null;
+      updated_by: string;
+    }> = [];
+
+    for (const row of dedupedRows) {
+      const key = makeDuplicateKey(row.year, row.geographic_unit_id);
+      const existingId = existingMap.get(key);
+
+      if (existingId) {
+        rowsToUpdate.push({
+          id: existingId,
+          value: row.value,
+          date: row.date,
+          updated_by: user.id,
+        });
+      } else {
+        rowsToInsert.push({
+          indicator_id: indicatorId,
+          year: row.year,
+          value: row.value,
+          date: row.date,
+          geographic_unit_id: row.geographic_unit_id,
+          created_by: user.id,
+          updated_by: user.id,
+        });
+      }
+    }
+
+    if (rowsToInsert.length > 0) {
+      const { error: insertError } = await supabase
+        .from("indicator_values")
+        .insert(rowsToInsert);
+
+      if (insertError) {
+        redirect(`/admin/indicators/${indicatorId}/values?error=import-failed`);
+      }
+    }
+
+    for (const row of rowsToUpdate) {
+      const { error: updateError } = await supabase
+        .from("indicator_values")
+        .update({
+          value: row.value,
+          date: row.date,
+          updated_by: row.updated_by,
+        })
+        .eq("id", row.id);
+
+      if (updateError) {
+        redirect(`/admin/indicators/${indicatorId}/values?error=import-failed`);
+      }
     }
   } catch {
     redirect(`/admin/indicators/${indicatorId}/values?error=import-failed`);
@@ -170,6 +273,17 @@ export default async function ImportIndicatorValuesPage({
       </p>
 
       <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+        <p className="font-medium text-slate-900">Import behavior</p>
+        <p className="mt-2">
+          If a row already exists for the same <code>year</code> and{" "}
+          <code>geography</code>, it will be updated.
+        </p>
+        <p className="mt-1">
+          If no existing row matches, a new value will be inserted.
+        </p>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
         <p className="font-medium text-slate-900">Expected CSV columns</p>
         <p className="mt-2">
           Required: <code>year</code>, <code>value</code>
