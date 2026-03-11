@@ -14,7 +14,7 @@ async function createPublication(formData: FormData) {
   const file_url = String(formData.get("file_url") || "").trim();
 
   if (!title || !slug) {
-    throw new Error("Title and slug are required.");
+    redirect("/admin/publications?error=create-failed");
   }
 
   const { error } = await supabase.from("publications").insert({
@@ -29,7 +29,7 @@ async function createPublication(formData: FormData) {
   });
 
   if (error) {
-    throw new Error(error.message);
+    redirect("/admin/publications?error=create-failed");
   }
 
   redirect("/admin/publications?success=created");

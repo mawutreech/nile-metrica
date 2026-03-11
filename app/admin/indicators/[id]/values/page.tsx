@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
+import { FlashBanner } from "@/components/admin/FlashBanner";
 
 async function createIndicatorValue(indicatorId: string, formData: FormData) {
   "use server";
@@ -14,14 +15,14 @@ async function createIndicatorValue(indicatorId: string, formData: FormData) {
   const date = String(formData.get("date") || "").trim();
 
   if (!yearRaw || !valueRaw) {
-    throw new Error("Year and value are required.");
+    redirect(`/admin/indicators/${indicatorId}/values?error=create-failed`);
   }
 
   const year = Number(yearRaw);
   const value = Number(valueRaw);
 
   if (Number.isNaN(year) || Number.isNaN(value)) {
-    throw new Error("Year and value must be numeric.");
+    redirect(`/admin/indicators/${indicatorId}/values?error=create-failed`);
   }
 
   const { error } = await supabase.from("indicator_values").insert({
@@ -35,7 +36,7 @@ async function createIndicatorValue(indicatorId: string, formData: FormData) {
   });
 
   if (error) {
-    throw new Error(error.message);
+    redirect(`/admin/indicators/${indicatorId}/values?error=create-failed`);
   }
 
   redirect(`/admin/indicators/${indicatorId}/values?success=created`);
@@ -50,7 +51,7 @@ async function deleteIndicatorValue(formData: FormData) {
   const indicatorId = String(formData.get("indicator_id") || "").trim();
 
   if (!id || !indicatorId) {
-    throw new Error("Value ID and indicator ID are required.");
+    redirect(`/admin/indicators/${indicatorId}/values?error=missing-id`);
   }
 
   const { error } = await supabase
@@ -59,7 +60,7 @@ async function deleteIndicatorValue(formData: FormData) {
     .eq("id", id);
 
   if (error) {
-    throw new Error(error.message);
+    redirect(`/admin/indicators/${indicatorId}/values?error=delete-failed`);
   }
 
   redirect(`/admin/indicators/${indicatorId}/values?success=deleted`);
@@ -78,16 +79,32 @@ function getSuccessMessage(success?: string) {
   }
 }
 
+function getErrorMessage(error?: string) {
+  switch (error) {
+    case "missing-id":
+      return "Indicator value ID was missing.";
+    case "create-failed":
+      return "Could not create the indicator value.";
+    case "update-failed":
+      return "Could not update the indicator value.";
+    case "delete-failed":
+      return "Could not delete the indicator value.";
+    default:
+      return null;
+  }
+}
+
 export default async function IndicatorValuesPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ success?: string }>;
+  searchParams?: Promise<{ success?: string; error?: string }>;
 }) {
   const { id } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const successMessage = getSuccessMessage(resolvedSearchParams?.success);
+  const errorMessage = getErrorMessage(resolvedSearchParams?.error);
 
   const { supabase } = await requireRole(["admin", "editor"]);
 
@@ -154,11 +171,8 @@ export default async function IndicatorValuesPage({
         </div>
       </div>
 
-      {successMessage ? (
-        <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {successMessage}
-        </div>
-      ) : null}
+      {successMessage ? <FlashBanner kind="success" message={successMessage} /> : null}
+      {errorMessage ? <FlashBanner kind="error" message={errorMessage} /> : null}
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -297,11 +311,7 @@ export default async function IndicatorValuesPage({
 
                             <form action={deleteIndicatorValue}>
                               <input type="hidden" name="id" value={row.id} />
-                              <input
-                                type="hidden"
-                                name="indicator_id"
-                                value={id}
-                              />
+                              <input type="hidden" name="indicator_id" value={id} />
                               <ConfirmDeleteButton message="Are you sure you want to delete this value?" />
                             </form>
                           </div>

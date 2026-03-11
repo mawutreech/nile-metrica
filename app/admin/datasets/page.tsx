@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
+import { FlashBanner } from "@/components/admin/FlashBanner";
 
 async function deleteDataset(formData: FormData) {
   "use server";
@@ -11,7 +12,7 @@ async function deleteDataset(formData: FormData) {
   const id = String(formData.get("id") || "").trim();
 
   if (!id) {
-    throw new Error("Dataset ID is required.");
+    redirect("/admin/datasets?error=missing-id");
   }
 
   const { error } = await supabase
@@ -20,7 +21,7 @@ async function deleteDataset(formData: FormData) {
     .eq("id", id);
 
   if (error) {
-    throw new Error(error.message);
+    redirect("/admin/datasets?error=delete-failed");
   }
 
   redirect("/admin/datasets?success=deleted");
@@ -41,14 +42,32 @@ function getSuccessMessage(success?: string) {
   }
 }
 
+function getErrorMessage(error?: string) {
+  switch (error) {
+    case "missing-id":
+      return "Dataset ID was missing.";
+    case "create-failed":
+      return "Could not create the dataset.";
+    case "update-failed":
+      return "Could not update the dataset.";
+    case "delete-failed":
+      return "Could not delete the dataset.";
+    case "upload-failed":
+      return "Could not upload the dataset file.";
+    default:
+      return null;
+  }
+}
+
 export default async function AdminDatasetsPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ success?: string }>;
+  searchParams?: Promise<{ success?: string; error?: string }>;
 }) {
   const { profile, supabase } = await requireRole(["admin", "editor", "viewer"]);
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const successMessage = getSuccessMessage(resolvedSearchParams?.success);
+  const errorMessage = getErrorMessage(resolvedSearchParams?.error);
 
   const { data: datasets, error } = await supabase
     .from("datasets")
@@ -74,11 +93,7 @@ export default async function AdminDatasetsPage({
 
   if (datasets && datasets.length > 0) {
     const ids = Array.from(
-      new Set(
-        datasets
-          .flatMap((d) => [d.created_by, d.updated_by])
-          .filter(Boolean)
-      )
+      new Set(datasets.flatMap((d) => [d.created_by, d.updated_by]).filter(Boolean))
     );
 
     if (ids.length > 0) {
@@ -115,11 +130,8 @@ export default async function AdminDatasetsPage({
         ) : null}
       </div>
 
-      {successMessage ? (
-        <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {successMessage}
-        </div>
-      ) : null}
+      {successMessage ? <FlashBanner kind="success" message={successMessage} /> : null}
+      {errorMessage ? <FlashBanner kind="error" message={errorMessage} /> : null}
 
       <div className="mt-10 rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-6 py-4">
@@ -151,9 +163,8 @@ export default async function AdminDatasetsPage({
                       {dataset.title}
                     </h3>
                     <p className="mt-1 text-sm text-slate-500">
-                      {themeName || "Uncategorized"} •{" "}
-                      {dataset.format || "Unknown"} • Updated{" "}
-                      {dataset.update_date || "N/A"}
+                      {themeName || "Uncategorized"} • {dataset.format || "Unknown"} •
+                      {" "}Updated {dataset.update_date || "N/A"}
                     </p>
                     <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
                       {dataset.description || "No description available."}
@@ -224,9 +235,7 @@ export default async function AdminDatasetsPage({
             })}
           </div>
         ) : (
-          <div className="px-6 py-6 text-sm text-slate-600">
-            No datasets yet.
-          </div>
+          <div className="px-6 py-6 text-sm text-slate-600">No datasets yet.</div>
         )}
       </div>
     </main>

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
+import { FlashBanner } from "@/components/admin/FlashBanner";
 
 async function deletePublication(formData: FormData) {
   "use server";
@@ -11,7 +12,7 @@ async function deletePublication(formData: FormData) {
   const id = String(formData.get("id") || "").trim();
 
   if (!id) {
-    throw new Error("Publication ID is required.");
+    redirect("/admin/publications?error=missing-id");
   }
 
   const { error } = await supabase
@@ -20,7 +21,7 @@ async function deletePublication(formData: FormData) {
     .eq("id", id);
 
   if (error) {
-    throw new Error(error.message);
+    redirect("/admin/publications?error=delete-failed");
   }
 
   redirect("/admin/publications?success=deleted");
@@ -41,14 +42,32 @@ function getSuccessMessage(success?: string) {
   }
 }
 
+function getErrorMessage(error?: string) {
+  switch (error) {
+    case "missing-id":
+      return "Publication ID was missing.";
+    case "delete-failed":
+      return "Could not delete the publication.";
+    case "create-failed":
+      return "Could not create the publication.";
+    case "update-failed":
+      return "Could not update the publication.";
+    case "upload-failed":
+      return "Could not upload the publication file.";
+    default:
+      return null;
+  }
+}
+
 export default async function AdminPublicationsPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ success?: string }>;
+  searchParams?: Promise<{ success?: string; error?: string }>;
 }) {
   const { profile, supabase } = await requireRole(["admin", "editor", "viewer"]);
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const successMessage = getSuccessMessage(resolvedSearchParams?.success);
+  const errorMessage = getErrorMessage(resolvedSearchParams?.error);
 
   const { data: publications, error } = await supabase
     .from("publications")
@@ -62,9 +81,7 @@ export default async function AdminPublicationsPage({
   if (publications && publications.length > 0) {
     const ids = Array.from(
       new Set(
-        publications
-          .flatMap((p) => [p.created_by, p.updated_by])
-          .filter(Boolean)
+        publications.flatMap((p) => [p.created_by, p.updated_by]).filter(Boolean)
       )
     );
 
@@ -103,9 +120,11 @@ export default async function AdminPublicationsPage({
       </div>
 
       {successMessage ? (
-        <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {successMessage}
-        </div>
+        <FlashBanner kind="success" message={successMessage} />
+      ) : null}
+
+      {errorMessage ? (
+        <FlashBanner kind="error" message={errorMessage} />
       ) : null}
 
       <div className="mt-10 rounded-3xl border border-slate-200 bg-white shadow-sm">

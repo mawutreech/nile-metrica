@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
+import { FlashBanner } from "@/components/admin/FlashBanner";
 
 async function deleteIndicator(formData: FormData) {
   "use server";
@@ -11,7 +12,7 @@ async function deleteIndicator(formData: FormData) {
   const id = String(formData.get("id") || "").trim();
 
   if (!id) {
-    throw new Error("Indicator ID is required.");
+    redirect("/admin/indicators?error=missing-id");
   }
 
   const { error } = await supabase
@@ -20,7 +21,7 @@ async function deleteIndicator(formData: FormData) {
     .eq("id", id);
 
   if (error) {
-    throw new Error(error.message);
+    redirect("/admin/indicators?error=delete-failed");
   }
 
   redirect("/admin/indicators?success=deleted");
@@ -39,14 +40,30 @@ function getSuccessMessage(success?: string) {
   }
 }
 
+function getErrorMessage(error?: string) {
+  switch (error) {
+    case "missing-id":
+      return "Indicator ID was missing.";
+    case "create-failed":
+      return "Could not create the indicator.";
+    case "update-failed":
+      return "Could not update the indicator.";
+    case "delete-failed":
+      return "Could not delete the indicator.";
+    default:
+      return null;
+  }
+}
+
 export default async function AdminIndicatorsPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ success?: string }>;
+  searchParams?: Promise<{ success?: string; error?: string }>;
 }) {
   const { profile, supabase } = await requireRole(["admin", "editor", "viewer"]);
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const successMessage = getSuccessMessage(resolvedSearchParams?.success);
+  const errorMessage = getErrorMessage(resolvedSearchParams?.error);
 
   const { data: indicators, error } = await supabase
     .from("indicators")
@@ -71,11 +88,7 @@ export default async function AdminIndicatorsPage({
 
   if (indicators && indicators.length > 0) {
     const ids = Array.from(
-      new Set(
-        indicators
-          .flatMap((i) => [i.created_by, i.updated_by])
-          .filter(Boolean)
-      )
+      new Set(indicators.flatMap((i) => [i.created_by, i.updated_by]).filter(Boolean))
     );
 
     if (ids.length > 0) {
@@ -112,11 +125,8 @@ export default async function AdminIndicatorsPage({
         ) : null}
       </div>
 
-      {successMessage ? (
-        <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {successMessage}
-        </div>
-      ) : null}
+      {successMessage ? <FlashBanner kind="success" message={successMessage} /> : null}
+      {errorMessage ? <FlashBanner kind="error" message={errorMessage} /> : null}
 
       <div className="mt-10 rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-6 py-4">
@@ -218,9 +228,7 @@ export default async function AdminIndicatorsPage({
             })}
           </div>
         ) : (
-          <div className="px-6 py-6 text-sm text-slate-600">
-            No indicators yet.
-          </div>
+          <div className="px-6 py-6 text-sm text-slate-600">No indicators yet.</div>
         )}
       </div>
     </main>

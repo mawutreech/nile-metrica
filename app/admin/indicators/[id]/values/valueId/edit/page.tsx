@@ -17,14 +17,14 @@ async function updateIndicatorValue(
   const date = String(formData.get("date") || "").trim();
 
   if (!yearRaw || !valueRaw) {
-    throw new Error("Year and value are required.");
+    redirect(`/admin/indicators/${indicatorId}/values?error=update-failed`);
   }
 
   const year = Number(yearRaw);
   const value = Number(valueRaw);
 
   if (Number.isNaN(year) || Number.isNaN(value)) {
-    throw new Error("Year and value must be numeric.");
+    redirect(`/admin/indicators/${indicatorId}/values?error=update-failed`);
   }
 
   const { data, error } = await supabase
@@ -41,12 +41,8 @@ async function updateIndicatorValue(
     .select("id")
     .single();
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  if (!data) {
-    throw new Error("Update failed. No value row was updated.");
+  if (error || !data) {
+    redirect(`/admin/indicators/${indicatorId}/values?error=update-failed`);
   }
 
   redirect(`/admin/indicators/${indicatorId}/values?success=updated`);
