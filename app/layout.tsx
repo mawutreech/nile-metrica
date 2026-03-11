@@ -22,7 +22,7 @@ export default function RootLayout({
         <div>{children}</div>
 
         <footer className="mt-20 border-t border-slate-200 bg-slate-950 text-slate-300">
-          <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-3">
+          <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3">
             <div>
               <h3 className="text-xl font-semibold text-white">Nile Metrika</h3>
               <p className="mt-4 max-w-sm text-sm leading-7 text-slate-400">
@@ -45,12 +45,20 @@ export default function RootLayout({
 
             <div>
               <h4 className="text-sm font-semibold uppercase tracking-[0.16em] text-white">
-                Institution
+                About
               </h4>
               <div className="mt-4 flex flex-col gap-3 text-sm">
-                <FooterLink href="/about">About</FooterLink>
+                <FooterLink href="/about">About Nile Metrika</FooterLink>
                 <FooterLink href="/contact">Contact</FooterLink>
+                <FooterLink href="/search">Search</FooterLink>
               </div>
+            </div>
+          </div>
+
+          <div className="border-t border-slate-800">
+            <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-sm text-slate-500 sm:px-6 md:flex-row md:items-center md:justify-between">
+              <p>© 2026 Nile Metrika. All rights reserved.</p>
+              <p>Accessible public data for research, planning, and policy use.</p>
             </div>
           </div>
         </footer>
@@ -67,7 +75,10 @@ function FooterLink({
   children: React.ReactNode;
 }) {
   return (
-    <Link href={href} className="block text-slate-400 transition hover:text-white">
+    <Link
+      href={href}
+      className="block text-slate-400 transition hover:text-white"
+    >
       {children}
     </Link>
   );

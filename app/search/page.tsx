@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
+import { PublicPageIntro } from "@/components/site/PublicPageIntro";
 
 type SearchPageProps = {
   searchParams?: Promise<{ q?: string }>;
@@ -94,17 +95,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
-      <div className="max-w-3xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">
-          Search
-        </p>
-        <h1 className="mt-3 text-4xl font-semibold text-slate-900 sm:text-5xl">
-          Search Nile Metrika
-        </h1>
-        <p className="mt-4 text-base leading-8 text-slate-600">
-          Search across publications, datasets, and indicators from one place.
-        </p>
-      </div>
+      <PublicPageIntro
+        eyebrow="Search"
+        title="Search Nile Metrika"
+        description="Search across publications, datasets, and indicators from one place."
+      />
 
       <form action="/search" method="GET" className="mt-8 max-w-3xl">
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -205,7 +200,11 @@ function SearchSection({
   emptyMessage: string;
   hasError?: boolean;
 }) {
-  const items = Array.isArray(children) ? children.filter(Boolean) : children ? [children] : [];
+  const items = Array.isArray(children)
+    ? children.filter(Boolean)
+    : children
+      ? [children]
+      : [];
 
   return (
     <section className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">

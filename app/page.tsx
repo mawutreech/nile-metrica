@@ -4,28 +4,28 @@ const quickSections = [
   {
     title: "Data",
     description:
-      "Browse downloadable datasets and structured statistical resources.",
+      "Browse datasets and indicators in one structured public portal.",
     href: "/data",
     cta: "Explore data",
   },
   {
     title: "Indicators",
     description:
-      "Review key indicators, definitions, and time-series values.",
+      "Review key measures, definitions, and time-series values.",
     href: "/indicators",
     cta: "View indicators",
   },
   {
     title: "Publications",
     description:
-      "Access reports, bulletins, briefs, and other published outputs.",
+      "Access reports, bulletins, briefs, and statistical outputs.",
     href: "/publications",
     cta: "Browse publications",
   },
   {
     title: "Methodology",
     description:
-      "Learn about sources, concepts, definitions, and data practices.",
+      "Read sources, definitions, notes, and methodological guidance.",
     href: "/methodology",
     cta: "Read methodology",
   },
@@ -33,19 +33,19 @@ const quickSections = [
 
 const highlights = [
   {
-    title: "Structured public data",
+    title: "Structured access",
     description:
-      "Access cleaner, more organized statistical information in one place.",
+      "Find public statistics in a cleaner, more organized format.",
   },
   {
-    title: "Research-ready resources",
+    title: "Research support",
     description:
-      "Use publications, datasets, and indicators to support analysis and policy work.",
+      "Use datasets, indicators, and publications for analysis and planning.",
   },
   {
-    title: "Simple navigation",
+    title: "Faster navigation",
     description:
-      "Jump directly to sections through the header menu and homepage cards.",
+      "Move quickly through the portal with section-based navigation and search.",
   },
 ];
 
@@ -64,9 +64,9 @@ export default function HomePage() {
             </h1>
 
             <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
-              Nile Metrika helps users quickly find datasets, indicators,
-              publications, and methodology without digging through long pages
-              or disconnected sources.
+              Nile Metrika brings together public data, indicators,
+              publications, and methodology in one place so users can find
+              information faster and work with it more easily.
             </p>
 
             <form action="/search" method="GET" className="mt-7 max-w-2xl">
@@ -74,7 +74,7 @@ export default function HomePage() {
                 <input
                   type="text"
                   name="q"
-                  placeholder="Search publications, datasets, and indicators..."
+                  placeholder="Search the portal..."
                   className="w-full rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm text-slate-900 placeholder:text-slate-400"
                 />
                 <button
@@ -110,12 +110,12 @@ export default function HomePage() {
             <div className="mt-4 grid gap-3">
               <QuickLink
                 title="Data"
-                description="Find downloadable datasets and metadata."
+                description="Find downloadable datasets and linked indicators."
                 href="/data"
               />
               <QuickLink
                 title="Indicators"
-                description="Review key measures and time-series values."
+                description="Review measures, values, and indicator pages."
                 href="/indicators"
               />
               <QuickLink
@@ -131,15 +131,14 @@ export default function HomePage() {
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:py-16">
         <div className="max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700 sm:text-sm">
-            Navigate faster
+            Start here
           </p>
           <h2 className="mt-2 text-2xl font-semibold text-slate-900 sm:text-3xl">
-            Start from the section you need.
+            Go directly to the section you need.
           </h2>
           <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
-            The homepage is intentionally shorter now. Use the cards below or
-            the dropdown navigation above to jump directly to the right part of
-            the portal.
+            Use the homepage cards, the section header above, or search to move
+            quickly across the portal.
           </p>
         </div>
 
@@ -171,7 +170,7 @@ export default function HomePage() {
               Why Nile Metrika
             </p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-900 sm:text-3xl">
-              A cleaner way to discover public statistics.
+              A simpler way to work with public statistics.
             </h2>
           </div>
 
@@ -203,8 +202,8 @@ export default function HomePage() {
               Reports and statistical outputs
             </h2>
             <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
-              Access reports, bulletins, briefs, and other resources that help
-              explain trends and inform public understanding.
+              Access reports, bulletins, briefs, and other outputs that explain
+              trends and support public understanding.
             </p>
             <div className="mt-6">
               <Link
@@ -218,14 +217,14 @@ export default function HomePage() {
 
           <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700 sm:text-sm">
-              Data and indicators
+              Data
             </p>
             <h2 className="mt-3 text-2xl font-semibold text-slate-900">
               Explore datasets and measurable trends
             </h2>
             <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
-              Browse downloadable datasets and indicator series that support
-              policy analysis, planning, and research.
+              Browse data resources and indicator series that support planning,
+              research, and policy analysis.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link

@@ -6,15 +6,91 @@ import { useEffect, useRef, useState } from "react";
 type MenuItem = {
   label: string;
   href: string;
-  description?: string;
 };
 
 type MenuGroup = {
   label: string;
-  items: MenuItem[];
+  sublabel: string;
+  href?: string;
+  items?: MenuItem[];
+  icon: React.ReactNode;
 };
 
-function SearchIcon({ className = "h-4 w-4" }: { className?: string }) {
+function PublicationsIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-10 w-10 text-slate-500"
+      aria-hidden="true"
+    >
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v10.5A2.5 2.5 0 0 1 6.5 19.5Z" />
+    </svg>
+  );
+}
+
+function DataIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-10 w-10 text-emerald-600"
+      aria-hidden="true"
+    >
+      <ellipse cx="12" cy="5" rx="7" ry="3" />
+      <path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5" />
+      <path d="M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" />
+    </svg>
+  );
+}
+
+function MethodologyIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-10 w-10 text-slate-500"
+      aria-hidden="true"
+    >
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M8 16v-3" />
+      <path d="M12 16V9" />
+      <path d="M16 16v-6" />
+      <circle cx="8" cy="10" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="7" r="1" fill="currentColor" stroke="none" />
+      <circle cx="16" cy="8" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function AboutIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className="h-9 w-9 text-slate-500"
+      aria-hidden="true"
+    >
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H14a2.5 2.5 0 0 1 2.5 2.5V11A2.5 2.5 0 0 1 14 13.5H9l-4 3V5.5Z" />
+      <path d="M20 8.5A2.5 2.5 0 0 0 17.5 6H17v5A4 4 0 0 1 13 15h-1.2l3.2 2.4V15h2.5A2.5 2.5 0 0 0 20 12.5v-4Z" />
+    </svg>
+  );
+}
+
+function SearchIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -23,7 +99,7 @@ function SearchIcon({ className = "h-4 w-4" }: { className?: string }) {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={className}
+      className="h-4 w-4 text-emerald-700"
       aria-hidden="true"
     >
       <circle cx="11" cy="11" r="7" />
@@ -34,53 +110,33 @@ function SearchIcon({ className = "h-4 w-4" }: { className?: string }) {
 
 const menuGroups: MenuGroup[] = [
   {
-    label: "Data",
+    label: "DATA",
+    sublabel: "datasets and indicators",
+    icon: <DataIcon />,
     items: [
-      {
-        label: "Datasets",
-        href: "/data",
-        description: "Browse downloadable datasets and data tables.",
-      },
-      {
-        label: "Indicators",
-        href: "/indicators",
-        description: "Explore key indicators and time-series values.",
-      },
+      { label: "DATASETS", href: "/data" },
+      { label: "INDICATORS", href: "/indicators" },
     ],
   },
   {
-    label: "Publications",
-    items: [
-      {
-        label: "All publications",
-        href: "/publications",
-        description: "Reports, bulletins, briefs, and releases.",
-      },
-    ],
+    label: "PUBLICATIONS",
+    sublabel: "reports and bulletins",
+    icon: <PublicationsIcon />,
+    items: [{ label: "ALL PUBLICATIONS", href: "/publications" }],
   },
   {
-    label: "Methodology",
-    items: [
-      {
-        label: "Methodology",
-        href: "/methodology",
-        description: "Sources, methods, definitions, and notes.",
-      },
-    ],
+    label: "METHODOLOGY",
+    sublabel: "sources and definitions",
+    icon: <MethodologyIcon />,
+    href: "/methodology",
   },
   {
-    label: "About",
+    label: "ABOUT",
+    sublabel: "portal and contact",
+    icon: <AboutIcon />,
     items: [
-      {
-        label: "About Nile Metrika",
-        href: "/about",
-        description: "Learn more about the portal and its purpose.",
-      },
-      {
-        label: "Contact",
-        href: "/contact",
-        description: "Get in touch or share feedback.",
-      },
+      { label: "ABOUT NILE METRIKA", href: "/about" },
+      { label: "CONTACT", href: "/contact" },
     ],
   },
 ];
@@ -92,50 +148,40 @@ function DropdownMenu({
   open: boolean;
   items: MenuItem[];
 }) {
-  const [shouldRender, setShouldRender] = useState(open);
+  const [mounted, setMounted] = useState(open);
 
   useEffect(() => {
     if (open) {
-      setShouldRender(true);
+      setMounted(true);
       return;
     }
 
-    const timer = setTimeout(() => setShouldRender(false), 220);
+    const timer = setTimeout(() => setMounted(false), 180);
     return () => clearTimeout(timer);
   }, [open]);
 
-  if (!shouldRender) return null;
+  if (!mounted) return null;
 
   return (
     <>
-      <div className="absolute left-0 top-full h-4 w-[420px] max-w-[calc(100vw-2rem)]" />
+      <div className="absolute left-0 top-full h-4 w-full" />
       <div
         className={[
-          "absolute left-0 top-full mt-3 w-[420px] max-w-[calc(100vw-2rem)] rounded-3xl border border-slate-200 bg-white p-3 shadow-xl origin-top-left",
-          "transition-all duration-200 ease-out",
+          "absolute left-0 top-full z-50 w-full origin-top border-x border-b border-slate-300 bg-white shadow-sm transition-all duration-200 ease-out",
           open
-            ? "translate-y-0 scale-100 opacity-100"
-            : "pointer-events-none -translate-y-1 scale-95 opacity-0",
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-1 pointer-events-none opacity-0",
         ].join(" ")}
       >
-        <div className="space-y-1">
-          {items.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="block rounded-2xl px-4 py-3 transition hover:bg-slate-50"
-            >
-              <p className="text-sm font-semibold text-slate-900">
-                {item.label}
-              </p>
-              {item.description ? (
-                <p className="mt-1 break-words text-sm leading-5 text-slate-500">
-                  {item.description}
-                </p>
-              ) : null}
-            </Link>
-          ))}
-        </div>
+        {items.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="block border-t border-slate-200 px-5 py-4 text-center text-[13px] font-medium tracking-[0.08em] text-slate-700 transition hover:bg-slate-50"
+          >
+            {item.label}
+          </Link>
+        ))}
       </div>
     </>
   );
@@ -158,7 +204,7 @@ export function SiteHeader() {
     setOpenMenu(label);
   };
 
-  const scheduleCloseDropdown = () => {
+  const closeDropdownSoon = () => {
     clearCloseTimer();
     closeTimerRef.current = setTimeout(() => {
       setOpenMenu(null);
@@ -170,183 +216,131 @@ export function SiteHeader() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <Link href="/" className="flex min-w-0 items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-sm font-bold text-white shadow-sm">
-            NK
-          </div>
+    <header className="sticky top-0 z-50 bg-white">
+      <div className="border-b border-slate-200">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:py-5">
+          <Link href="/" className="flex min-w-0 items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-sm font-bold text-white">
+              NK
+            </div>
 
-          <div className="min-w-0">
-            <p className="truncate text-base font-semibold text-slate-900 sm:text-lg">
-              Nile Metrika
-            </p>
-            <p className="truncate text-[10px] uppercase tracking-[0.16em] text-slate-500 sm:text-xs sm:tracking-[0.18em]">
-              South Sudan Data Portal
-            </p>
-          </div>
-        </Link>
+            <div className="min-w-0">
+              <p className="truncate text-[30px] font-light leading-none tracking-tight text-emerald-700 sm:text-[34px]">
+                Nile <span className="text-indigo-700">Metrika</span>
+              </p>
+              <p className="mt-1 truncate text-[10px] uppercase tracking-[0.24em] text-slate-500 sm:text-[11px]">
+                South Sudan Data Portal
+              </p>
+            </div>
+          </Link>
 
-        <nav className="hidden items-center gap-1 xl:flex">
-          {menuGroups.map((group) => (
-            <div
-              key={group.label}
-              className="relative"
-              onMouseEnter={() => openDropdown(group.label)}
-              onMouseLeave={scheduleCloseDropdown}
+          <div className="hidden items-center gap-3 lg:flex">
+            <form action="/search" method="GET" className="flex items-center">
+              <div className="flex items-center rounded-md bg-slate-100 px-4 py-3 shadow-sm">
+                <input
+                  type="text"
+                  name="q"
+                  placeholder="Search the portal"
+                  className="w-64 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-500"
+                />
+                <SearchIcon />
+              </div>
+            </form>
+
+            <Link
+              href="/admin"
+              className="rounded-md bg-emerald-700 px-4 py-3 text-sm font-medium text-white transition hover:bg-emerald-800"
             >
-              <button
-                type="button"
-                onClick={() =>
-                  setOpenMenu((current) =>
-                    current === group.label ? null : group.label
-                  )
-                }
-                className="rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
-              >
-                {group.label}
-              </button>
+              Admin
+            </Link>
+          </div>
 
-              <DropdownMenu
-                open={openMenu === group.label}
-                items={group.items}
-              />
-            </div>
-          ))}
-
-          <form
-            action="/search"
-            method="GET"
-            className="ml-2 flex items-center gap-2"
-          >
-            <div className="flex items-center rounded-xl border border-slate-300 bg-white px-3 py-2 transition focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-100">
-              <SearchIcon className="mr-2 h-4 w-4 shrink-0 text-slate-400" />
-              <input
-                type="text"
-                name="q"
-                placeholder="Search..."
-                className="w-32 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-              />
-            </div>
+          <div className="flex items-center gap-2 lg:hidden">
+            <Link
+              href="/search"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700"
+            >
+              Search
+            </Link>
             <button
-              type="submit"
-              className="rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              type="button"
+              onClick={() => setMobileOpen((v) => !v)}
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700"
             >
-              Go
+              Menu
             </button>
-          </form>
-
-          <Link
-            href="/admin"
-            className="rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-          >
-            Admin
-          </Link>
-        </nav>
-
-        <div className="hidden items-center gap-2 lg:flex xl:hidden">
-          <Link
-            href="/data"
-            className="rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
-          >
-            Data
-          </Link>
-          <Link
-            href="/indicators"
-            className="rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
-          >
-            Indicators
-          </Link>
-          <Link
-            href="/publications"
-            className="rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
-          >
-            Publications
-          </Link>
-          <Link
-            href="/methodology"
-            className="rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
-          >
-            Methodology
-          </Link>
-          <Link
-            href="/about"
-            className="rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
-          >
-            About
-          </Link>
-          <Link
-            href="/search"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-          >
-            <SearchIcon className="h-4 w-4" />
-            Search
-          </Link>
-          <Link
-            href="/admin"
-            className="rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-          >
-            Admin
-          </Link>
+          </div>
         </div>
+      </div>
 
-        <div className="flex items-center gap-2 lg:hidden">
-          <Link
-            href="/search"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-          >
-            <SearchIcon className="h-4 w-4" />
-            Search
-          </Link>
+      <div className="hidden border-y border-slate-200 bg-white xl:block">
+        <div className="mx-auto grid max-w-7xl grid-cols-4">
+          {menuGroups.map((group) => {
+            const isOpen = openMenu === group.label;
 
-          <button
-            type="button"
-            onClick={() => setMobileOpen((current) => !current)}
-            className="rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-          >
-            Menu
-          </button>
+            if (group.href) {
+              return (
+                <Link
+                  key={group.label}
+                  href={group.href}
+                  className="flex min-h-[144px] flex-col items-center justify-center border-r border-slate-200 px-6 py-6 text-center transition last:border-r-0 hover:bg-slate-50"
+                >
+                  <div className="mb-3">{group.icon}</div>
+                  <p className="text-[15px] font-medium tracking-[0.06em] text-slate-800">
+                    {group.label}
+                  </p>
+                  <p className="mt-1 text-[13px] text-slate-600">
+                    {group.sublabel}
+                  </p>
+                </Link>
+              );
+            }
+
+            return (
+              <div
+                key={group.label}
+                className="relative border-r border-slate-200 last:border-r-0"
+                onMouseEnter={() => openDropdown(group.label)}
+                onMouseLeave={closeDropdownSoon}
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOpenMenu((current) =>
+                      current === group.label ? null : group.label
+                    )
+                  }
+                  className={[
+                    "flex min-h-[144px] w-full flex-col items-center justify-center px-6 py-6 text-center transition",
+                    isOpen ? "bg-slate-50" : "hover:bg-slate-50",
+                  ].join(" ")}
+                >
+                  <div className="mb-3">{group.icon}</div>
+                  <p className="text-[15px] font-medium tracking-[0.06em] text-slate-800">
+                    {group.label}
+                  </p>
+                  <p className="mt-1 text-[13px] text-slate-600">
+                    {group.sublabel}
+                  </p>
+                </button>
+
+                <DropdownMenu open={isOpen} items={group.items || []} />
+              </div>
+            );
+          })}
         </div>
       </div>
 
       <div
         className={[
-          "border-t border-slate-200 bg-white lg:hidden overflow-hidden transition-all duration-200 ease-out",
-          mobileOpen ? "max-h-[80rem] opacity-100" : "max-h-0 opacity-0",
+          "overflow-hidden bg-white transition-all duration-200 lg:hidden",
+          mobileOpen
+            ? "max-h-[80rem] border-b border-slate-200 opacity-100"
+            : "max-h-0 border-b-0 opacity-0",
         ].join(" ")}
       >
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
           <div className="space-y-4">
-            {menuGroups.map((group) => (
-              <div
-                key={group.label}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-              >
-                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">
-                  {group.label}
-                </p>
-                <div className="mt-3 space-y-2">
-                  {group.items.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMobileOpen(false)}
-                      className="block rounded-xl bg-white px-4 py-3 shadow-sm transition hover:bg-slate-100"
-                    >
-                      <p className="text-sm font-semibold text-slate-900">
-                        {item.label}
-                      </p>
-                      {item.description ? (
-                        <p className="mt-1 text-sm text-slate-500">
-                          {item.description}
-                        </p>
-                      ) : null}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
-
             <form
               action="/search"
               method="GET"
@@ -356,28 +350,65 @@ export function SiteHeader() {
                 Search
               </label>
               <div className="flex gap-2">
-                <div className="flex w-full items-center rounded-xl border border-slate-300 bg-white px-4 py-3 transition focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-100">
-                  <SearchIcon className="mr-2 h-4 w-4 shrink-0 text-slate-400" />
-                  <input
-                    type="text"
-                    name="q"
-                    placeholder="Search..."
-                    className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-                  />
-                </div>
+                <input
+                  type="text"
+                  name="q"
+                  placeholder="Search the portal"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                />
                 <button
                   type="submit"
-                  className="rounded-xl border border-slate-300 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  className="rounded-xl border border-slate-300 px-4 py-3 text-sm font-medium text-slate-700"
                 >
                   Go
                 </button>
               </div>
             </form>
 
+            {menuGroups.map((group) => (
+              <div
+                key={group.label}
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+              >
+                <div className="flex items-center gap-3">
+                  <div>{group.icon}</div>
+                  <div>
+                    <p className="text-sm font-semibold tracking-[0.05em] text-slate-900">
+                      {group.label}
+                    </p>
+                    <p className="text-sm text-slate-600">{group.sublabel}</p>
+                  </div>
+                </div>
+
+                {group.href ? (
+                  <Link
+                    href={group.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="mt-3 block rounded-xl bg-white px-4 py-3 text-sm text-slate-700 shadow-sm"
+                  >
+                    Open
+                  </Link>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    {(group.items || []).map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className="block rounded-xl bg-white px-4 py-3 text-sm text-slate-700 shadow-sm"
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+
             <Link
               href="/admin"
               onClick={() => setMobileOpen(false)}
-              className="block rounded-xl border border-slate-300 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              className="block rounded-xl bg-emerald-700 px-4 py-3 text-sm font-medium text-white"
             >
               Admin
             </Link>

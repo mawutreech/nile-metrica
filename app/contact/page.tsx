@@ -1,43 +1,39 @@
-import type { Metadata } from "next";
-import { PageHero } from "@/components/common/PageHero";
-import { Container } from "@/components/common/Container";
+import { PublicPageIntro } from "@/components/site/PublicPageIntro";
 
 export default function ContactPage() {
   return (
-    <>
-      <PageHero
-        title="Contact"
-        description="Get in touch for data requests, feedback, corrections, or partnership inquiries."
+    <main className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
+      <PublicPageIntro
+        eyebrow="Contact"
+        title="Get in touch"
+        description="Use this page for portal feedback, data questions, or general communication related to Nile Metrika."
       />
-      <section className="py-12">
-        <Container>
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="nm-card p-6">
-              <h2 className="text-xl font-semibold text-slate-900">Contact details</h2>
-              <div className="mt-4 space-y-2 text-slate-600">
-                <p>Email: info@nilemetrika.org</p>
-                <p>Data requests: data@nilemetrika.org</p>
-                <p>Partnerships: partnerships@nilemetrika.org</p>
-              </div>
-            </div>
-            <div className="nm-card p-6">
-              <h2 className="text-xl font-semibold text-slate-900">Contact form</h2>
-              <div className="mt-4 grid gap-4">
-                <input className="rounded-xl border border-slate-200 px-4 py-3" placeholder="Your name" />
-                <input className="rounded-xl border border-slate-200 px-4 py-3" placeholder="Email address" />
-                <textarea className="min-h-32 rounded-xl border border-slate-200 px-4 py-3" placeholder="Message" />
-                <button className="nm-button-primary w-fit">Send message</button>
-              </div>
-            </div>
-          </div>
-        </Container>
-      </section>
-    </>
+
+      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <h2 className="text-xl font-semibold text-slate-900">General enquiries</h2>
+          <p className="mt-4 text-sm leading-7 text-slate-600">
+            For general questions about the portal, datasets, indicators, or
+            publications, use your preferred public contact channel here.
+          </p>
+        </section>
+
+        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <h2 className="text-xl font-semibold text-slate-900">Feedback</h2>
+          <p className="mt-4 text-sm leading-7 text-slate-600">
+            Feedback on missing data, broken links, metadata issues, or general
+            usability improvements is especially helpful as the portal grows.
+          </p>
+        </section>
+
+        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8 lg:col-span-2">
+          <h2 className="text-xl font-semibold text-slate-900">Contact details</h2>
+          <p className="mt-4 text-sm leading-7 text-slate-600">
+            Add your official email address, web contact details, or office
+            information here when ready.
+          </p>
+        </section>
+      </div>
+    </main>
   );
 }
-
-export const metadata: Metadata = {
-  title: "Contact",
-  description:
-    "Contact Nile Metrika for data requests, corrections, feedback, and partnership inquiries.",
-};

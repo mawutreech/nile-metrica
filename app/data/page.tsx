@@ -1,123 +1,92 @@
-import type { Metadata } from "next";
-import { PageHero } from "@/components/common/PageHero";
-import { Container } from "@/components/common/Container";
-import { SectionHeading } from "@/components/common/SectionHeading";
-import { ThemeCard } from "@/components/data/ThemeCard";
-import { DatasetCard } from "@/components/data/DatasetCard";
-import { IndicatorCard } from "@/components/data/IndicatorCard";
-import { DataSearchForm } from "@/components/data/DataSearchForm";
-import {
-  getDatasets,
-  getHomepageIndicators,
-  getThemes,
-  searchDatasets,
-  searchIndicators,
-  searchThemes,
-} from "@/lib/queries";
+import Link from "next/link";
+import { createClient } from "@/utils/supabase/server";
+import { PublicPageIntro } from "@/components/site/PublicPageIntro";
 
-export default async function DataPage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ q?: string }>;
-}) {
-  const params = await searchParams;
-  const q = params?.q?.trim() || "";
+export default async function DataPage() {
+  const supabase = await createClient();
 
-  const themes = q ? await searchThemes(q) : await getThemes();
-  const indicators = q ? await searchIndicators(q) : await getHomepageIndicators();
-  const datasets = q ? await searchDatasets(q) : await getDatasets();
+  const { data: datasets, error } = await supabase
+    .from("datasets")
+    .select(`
+      id,
+      title,
+      slug,
+      description,
+      format,
+      update_date,
+      theme:themes(name),
+      source_agency:source_agencies(name)
+    `)
+    .order("update_date", { ascending: false });
 
   return (
-    <>
-      <PageHero
-        title="Data"
-        description="Browse statistical data by theme, indicator, and dataset collection."
+    <main className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
+      <PublicPageIntro
+        eyebrow="Data"
+        title="Browse public data"
+        description="Explore datasets and supporting metadata in a cleaner, structured public portal."
       />
 
-      <section className="py-12">
-        <Container>
-          <DataSearchForm />
-        </Container>
-      </section>
+      <div className="mt-10 rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-6 py-4">
+          <h2 className="text-lg font-semibold text-slate-900">All datasets</h2>
+        </div>
 
-      <section className="py-12">
-        <Container>
-          <SectionHeading
-            title="Themes"
-            description={q ? `Search results for “${q}” in themes.` : undefined}
-          />
-          {themes.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {themes.map((theme) => (
-                <ThemeCard
-                  key={theme.id}
-                  theme={{
-                    id: theme.id,
-                    name: theme.name,
-                    slug: theme.slug,
-                    description: theme.description || "",
-                  }}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="nm-card p-6 text-sm text-slate-600">No themes found.</div>
-          )}
-        </Container>
-      </section>
+        {error ? (
+          <div className="px-6 py-6 text-sm text-rose-600">
+            Failed to load datasets.
+          </div>
+        ) : datasets && datasets.length > 0 ? (
+          <div className="divide-y divide-slate-100">
+            {datasets.map((dataset) => {
+              const themeName = Array.isArray(dataset.theme)
+                ? dataset.theme[0]?.name
+                : undefined;
 
-      <section className="py-12">
-        <Container>
-          <SectionHeading
-            title="Indicators"
-            description={q ? `Search results for “${q}” in indicators.` : undefined}
-          />
-          {indicators.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-              {indicators.map((indicator) => (
-                <IndicatorCard key={indicator.id} indicator={indicator} />
-              ))}
-            </div>
-          ) : (
-            <div className="nm-card p-6 text-sm text-slate-600">No indicators found.</div>
-          )}
-        </Container>
-      </section>
+              const sourceAgencyName = Array.isArray(dataset.source_agency)
+                ? dataset.source_agency[0]?.name
+                : undefined;
 
-      <section className="py-12">
-        <Container>
-          <SectionHeading
-            title="Datasets"
-            description={q ? `Search results for “${q}” in datasets.` : undefined}
-          />
-          {datasets.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {datasets.map((dataset) => (
-                <DatasetCard
+              return (
+                <div
                   key={dataset.id}
-                  dataset={{
-                    id: dataset.id,
-                    title: dataset.title,
-                    slug: dataset.slug,
-                    description: dataset.description || "",
-                    theme: dataset.theme?.name || "Uncategorized",
-                    format: dataset.format || "Unknown",
-                    updatedAt: dataset.update_date || "N/A",
-                  }}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="nm-card p-6 text-sm text-slate-600">No datasets found.</div>
-          )}
-        </Container>
-      </section>
-    </>
+                  className="flex flex-col gap-4 px-6 py-5 md:flex-row md:items-start md:justify-between"
+                >
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-semibold text-slate-900">
+                      {dataset.title}
+                    </h3>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {themeName || "Uncategorized"} •{" "}
+                      {dataset.format || "Unknown format"} • Updated{" "}
+                      {dataset.update_date || "N/A"}
+                    </p>
+                    <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
+                      {dataset.description || "No description available."}
+                    </p>
+                    <p className="mt-2 text-xs text-slate-400">
+                      Source: {sourceAgencyName || "Unknown"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <Link
+                      href={`/datasets/${dataset.slug}`}
+                      className="rounded-2xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                    >
+                      Open dataset
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="px-6 py-6 text-sm text-slate-600">
+            No datasets available yet.
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
-
-export const metadata: Metadata = {
-  title: "Data",
-  description:
-    "Browse themes, indicators, and datasets across South Sudan's public statistics portal.",
-};

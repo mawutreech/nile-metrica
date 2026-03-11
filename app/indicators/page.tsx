@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
+import { PublicPageIntro } from "@/components/site/PublicPageIntro";
 
 export default async function IndicatorsPage() {
   const supabase = await createClient();
@@ -21,18 +22,11 @@ export default async function IndicatorsPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
-      <div className="max-w-3xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">
-          Indicators
-        </p>
-        <h1 className="mt-3 text-4xl font-semibold text-slate-900 sm:text-5xl">
-          Explore key indicators
-        </h1>
-        <p className="mt-4 text-base leading-8 text-slate-600">
-          Browse indicator definitions, frequencies, units, and linked public
-          indicator pages.
-        </p>
-      </div>
+      <PublicPageIntro
+        eyebrow="Indicators"
+        title="Explore key indicators"
+        description="Browse indicator definitions, frequencies, units, and linked public indicator pages."
+      />
 
       <div className="mt-10 rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-6 py-4">
@@ -65,17 +59,14 @@ export default async function IndicatorsPage() {
                     <h3 className="text-lg font-semibold text-slate-900">
                       {indicator.name}
                     </h3>
-
                     <p className="mt-1 text-sm text-slate-500">
                       {themeName || "Uncategorized"} •{" "}
                       {indicator.frequency || "Unknown frequency"} •{" "}
                       {indicator.unit || "No unit"}
                     </p>
-
                     <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
                       {indicator.description || "No description available."}
                     </p>
-
                     <p className="mt-2 text-xs text-slate-400">
                       Code: {indicator.code || "N/A"} • Source:{" "}
                       {sourceAgencyName || "Unknown"}

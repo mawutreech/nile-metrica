@@ -1,32 +1,42 @@
-import type { Metadata } from "next";
-import { PageHero } from "@/components/common/PageHero";
-import { Container } from "@/components/common/Container";
+import { PublicPageIntro } from "@/components/site/PublicPageIntro";
 
 export default function AboutPage() {
   return (
-    <>
-      <PageHero
+    <main className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
+      <PublicPageIntro
+        eyebrow="About"
         title="About Nile Metrika"
-        description="A public statistical platform for accessible and structured information on South Sudan."
+        description="Nile Metrika is a public-facing portal designed to make South Sudan’s statistical information more accessible, organized, and usable."
       />
-      <section className="py-12">
-        <Container>
-          <div className="nm-card p-6">
-            <p className="max-w-3xl text-slate-600">
-              Nile Metrika is designed to provide the general public, researchers, journalists,
-              students, and policymakers with a clean and reliable portal for exploring public data.
-              The platform brings together datasets, indicators, publications, and methodology into
-              one scalable system.
-            </p>
-          </div>
-        </Container>
-      </section>
-    </>
+
+      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <h2 className="text-xl font-semibold text-slate-900">Purpose</h2>
+          <p className="mt-4 text-sm leading-7 text-slate-600">
+            The portal brings together datasets, indicators, publications, and
+            methodology so users can move more easily across public statistical
+            resources in one place.
+          </p>
+        </section>
+
+        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <h2 className="text-xl font-semibold text-slate-900">Audience</h2>
+          <p className="mt-4 text-sm leading-7 text-slate-600">
+            Nile Metrika is intended for researchers, policy practitioners,
+            institutions, journalists, students, and anyone who needs more
+            structured access to public data and statistical outputs.
+          </p>
+        </section>
+
+        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8 lg:col-span-2">
+          <h2 className="text-xl font-semibold text-slate-900">Approach</h2>
+          <p className="mt-4 max-w-4xl text-sm leading-7 text-slate-600">
+            The focus of the portal is clarity: cleaner organization, easier
+            navigation, better metadata, and simpler public access to
+            publications, datasets, and indicators.
+          </p>
+        </section>
+      </div>
+    </main>
   );
 }
-
-export const metadata: Metadata = {
-  title: "About",
-  description:
-    "Learn about Nile Metrika and its role as a public statistics portal for South Sudan.",
-};
