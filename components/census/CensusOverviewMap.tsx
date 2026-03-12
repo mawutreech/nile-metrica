@@ -74,6 +74,10 @@ function getFillColor(value: number | null, max: number) {
   return "#dcfce7";
 }
 
+const LeafletMapContainer = MapContainer as unknown as React.ComponentType<any>;
+const LeafletTileLayer = TileLayer as unknown as React.ComponentType<any>;
+const LeafletGeoJSON = GeoJSON as unknown as React.ComponentType<any>;
+
 export function CensusOverviewMap({
   counties,
 }: {
@@ -124,20 +128,20 @@ export function CensusOverviewMap({
       </div>
 
       <div className="h-[560px] w-full">
-        <MapContainer
+        <LeafletMapContainer
           center={[7.5, 30.0]}
           zoom={6}
           scrollWheelZoom={true}
           className="h-full w-full"
         >
-          <TileLayer
+          <LeafletTileLayer
             attribution="&copy; OpenStreetMap contributors"
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          <GeoJSON
-            data={geojson as never}
-            style={(feature) => {
+          <LeafletGeoJSON
+            data={geojson}
+            style={(feature: GeoJsonFeature) => {
               const countyName = getCanonicalCountyName(
                 String(feature?.properties?.ADM2_EN || "")
               );
@@ -152,7 +156,7 @@ export function CensusOverviewMap({
                 fillOpacity: 0.8,
               };
             }}
-            onEachFeature={(feature, layer) => {
+            onEachFeature={(feature: GeoJsonFeature, layer: any) => {
               const geoCountyName = String(
                 feature?.properties?.ADM2_EN || "Unknown county"
               );
@@ -180,7 +184,7 @@ export function CensusOverviewMap({
               );
             }}
           />
-        </MapContainer>
+        </LeafletMapContainer>
       </div>
     </div>
   );
