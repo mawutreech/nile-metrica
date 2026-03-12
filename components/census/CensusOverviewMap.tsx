@@ -62,7 +62,12 @@ function formatPopulation(value: number | null) {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
-function getFillColor(value: number | null, max: number) {
+function getFillColor(
+  value: number | null,
+  max: number,
+  isActive: boolean
+) {
+  if (isActive) return "#14532d";
   if (value === null || max <= 0) return "#e5e7eb";
 
   const ratio = value / max;
@@ -75,13 +80,20 @@ function getFillColor(value: number | null, max: number) {
   return "#dcfce7";
 }
 
-const LeafletMapContainer = MapContainer as unknown as React.ComponentType<any>;
+const LeafletMapContainer =
+  MapContainer as unknown as React.ComponentType<any>;
 const LeafletGeoJSON = GeoJSON as unknown as React.ComponentType<any>;
 
 export function CensusOverviewMap({
   counties,
+  activeCountySlug,
+  onCountyHover,
+  onCountyLeave,
 }: {
   counties: CountyPopulationRow[];
+  activeCountySlug?: string | null;
+  onCountyHover?: (slug: string) => void;
+  onCountyLeave?: () => void;
 }) {
   const [geojson, setGeojson] = useState<GeoJsonData | null>(null);
 
@@ -98,6 +110,22 @@ export function CensusOverviewMap({
     );
   }, [counties]);
 
+  const filteredGeojson = useMemo(() => {
+    if (!geojson) return null;
+
+    const features = geojson.features.filter((feature) => {
+      const countyName = getCanonicalCountyName(
+        String(feature?.properties?.ADM2_EN || "")
+      );
+      return countyMap.has(countyName);
+    });
+
+    return {
+      type: "FeatureCollection" as const,
+      features,
+    };
+  }, [geojson, countyMap]);
+
   const maxPopulation = useMemo(() => {
     return Math.max(
       0,
@@ -108,12 +136,12 @@ export function CensusOverviewMap({
   }, [counties]);
 
   const mapBounds = useMemo(() => {
-    if (!geojson) return null;
-    const layer = L.geoJSON(geojson as any);
+    if (!filteredGeojson || filteredGeojson.features.length === 0) return null;
+    const layer = L.geoJSON(filteredGeojson as any);
     return layer.getBounds();
-  }, [geojson]);
+  }, [filteredGeojson]);
 
-  if (!geojson || !mapBounds) {
+  if (!filteredGeojson || !mapBounds) {
     return (
       <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
         County map could not be loaded. Check that the file exists at{" "}
@@ -146,7 +174,8 @@ export function CensusOverviewMap({
           style={{ background: "#ffffff" }}
         >
           <LeafletGeoJSON
-            data={geojson}
+            key={activeCountySlug || "none"}
+            data={filteredGeojson}
             style={(feature: GeoJsonFeature) => {
               const countyName = getCanonicalCountyName(
                 String(feature?.properties?.ADM2_EN || "")
@@ -154,12 +183,13 @@ export function CensusOverviewMap({
 
               const county = countyMap.get(countyName);
               const population = county?.population ?? null;
+              const isActive = county?.slug === activeCountySlug;
 
               return {
-                color: "#475569",
-                weight: 1.2,
-                fillColor: getFillColor(population, maxPopulation),
-                fillOpacity: 0.85,
+                color: isActive ? "#0f172a" : "#475569",
+                weight: isActive ? 2.2 : 1.2,
+                fillColor: getFillColor(population, maxPopulation, !!isActive),
+                fillOpacity: isActive ? 0.95 : 0.85,
               };
             }}
             onEachFeature={(feature: GeoJsonFeature, layer: any) => {
@@ -177,6 +207,7 @@ export function CensusOverviewMap({
               const name = county?.name || geoCountyName;
               const parent = county?.parent_name || geoStateName;
               const population = county?.population ?? null;
+              const slug = county?.slug;
 
               layer.bindTooltip(
                 `
@@ -196,6 +227,20 @@ export function CensusOverviewMap({
                 direction: "center",
                 className: "county-name-label",
                 opacity: 0.9,
+              });
+
+              layer.on({
+                mouseover: () => {
+                  if (slug && onCountyHover) onCountyHover(slug);
+                },
+                mouseout: () => {
+                  if (onCountyLeave) onCountyLeave();
+                },
+                click: () => {
+                  if (slug) {
+                    window.location.href = `/census/${slug}`;
+                  }
+                },
               });
             }}
           />
