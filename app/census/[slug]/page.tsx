@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { PublicPageIntro } from "@/components/site/PublicPageIntro";
-import { CensusChildMap } from "@/components/census/CensusChildMap";
+import { CensusChildMapClient } from "@/components/census/CensusChildMapClient";
 
 function childLabel(type: string | null) {
   switch (type) {
@@ -250,7 +250,7 @@ export default async function CensusUnitPage({
       </div>
 
       {stateLevelPage ? (
-        <CensusChildMap
+        <CensusChildMapClient
           title={`${unit.name} county map`}
           childrenRows={childrenWithPopulation}
         />

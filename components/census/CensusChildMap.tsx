@@ -1,8 +1,7 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
-import { GeoJSON, MapContainer } from "react-leaflet";
-import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 type ChildRow = {
@@ -16,13 +15,26 @@ type ChildRow = {
 type GeoJsonFeature = {
   type: "Feature";
   properties: Record<string, unknown>;
-  geometry: unknown;
+  geometry: {
+    type: string;
+    coordinates: any;
+  };
 };
 
 type GeoJsonData = {
   type: "FeatureCollection";
   features: GeoJsonFeature[];
 };
+
+const LeafletMapContainer = dynamic(
+  () => import("react-leaflet").then((m) => m.MapContainer),
+  { ssr: false }
+) as any;
+
+const LeafletGeoJSON = dynamic(
+  () => import("react-leaflet").then((m) => m.GeoJSON),
+  { ssr: false }
+) as any;
 
 function normalizeName(value: string) {
   return value
@@ -36,16 +48,12 @@ function normalizeName(value: string) {
 const COUNTY_NAME_ALIASES: Record<string, string> = {
   bor: "bor south",
   "bor south": "bor south",
-
   lafon: "lopa",
   lopa: "lopa",
-
   raga: "raja",
   raja: "raja",
-
   yei: "yei river",
   "yei river": "yei river",
-
   "canal / pigi": "canal/pigi",
   "canal/pigi": "canal/pigi",
   "pigi / canal": "canal/pigi",
@@ -66,7 +74,6 @@ function getFillColor(value: number | null, max: number) {
   if (value === null || max <= 0) return "#e5e7eb";
 
   const ratio = value / max;
-
   if (ratio > 0.85) return "#166534";
   if (ratio > 0.65) return "#15803d";
   if (ratio > 0.45) return "#22c55e";
@@ -75,8 +82,43 @@ function getFillColor(value: number | null, max: number) {
   return "#dcfce7";
 }
 
-const LeafletMapContainer = MapContainer as unknown as React.ComponentType<any>;
-const LeafletGeoJSON = GeoJSON as unknown as React.ComponentType<any>;
+function extractCoords(coords: any, acc: [number, number][]) {
+  if (!Array.isArray(coords)) return;
+  if (
+    coords.length >= 2 &&
+    typeof coords[0] === "number" &&
+    typeof coords[1] === "number"
+  ) {
+    acc.push([coords[1], coords[0]]);
+    return;
+  }
+  for (const item of coords) extractCoords(item, acc);
+}
+
+function getBoundsFromGeoJSON(data: GeoJsonData): [[number, number], [number, number]] | null {
+  const points: [number, number][] = [];
+  for (const feature of data.features) {
+    extractCoords(feature.geometry?.coordinates, points);
+  }
+  if (points.length === 0) return null;
+
+  let minLat = points[0][0];
+  let maxLat = points[0][0];
+  let minLng = points[0][1];
+  let maxLng = points[0][1];
+
+  for (const [lat, lng] of points) {
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
+    if (lng < minLng) minLng = lng;
+    if (lng > maxLng) maxLng = lng;
+  }
+
+  return [
+    [minLat, minLng],
+    [maxLat, maxLng],
+  ];
+}
 
 export function CensusChildMap({
   title,
@@ -127,8 +169,7 @@ export function CensusChildMap({
 
   const mapBounds = useMemo(() => {
     if (!filteredGeojson || filteredGeojson.features.length === 0) return null;
-    const layer = L.geoJSON(filteredGeojson as any);
-    return layer.getBounds();
+    return getBoundsFromGeoJSON(filteredGeojson);
   }, [filteredGeojson]);
 
   if (!filteredGeojson || !mapBounds || filteredGeojson.features.length === 0) {
@@ -173,13 +214,8 @@ export function CensusChildMap({
               };
             }}
             onEachFeature={(feature: GeoJsonFeature, layer: any) => {
-              const geoCountyName = String(
-                feature?.properties?.ADM2_EN || "Unknown"
-              );
-              const row = childMap.get(
-                getCanonicalCountyName(geoCountyName)
-              );
-
+              const geoCountyName = String(feature?.properties?.ADM2_EN || "Unknown");
+              const row = childMap.get(getCanonicalCountyName(geoCountyName));
               const name = row?.name || geoCountyName;
               const population = row?.population ?? null;
 

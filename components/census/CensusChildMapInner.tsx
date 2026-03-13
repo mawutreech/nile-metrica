@@ -4,12 +4,12 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import "leaflet/dist/leaflet.css";
 
-type CountyPopulationRow = {
+type ChildRow = {
   id: string;
   name: string;
   slug: string;
+  type: string | null;
   population: number | null;
-  parent_name: string | null;
 };
 
 type GeoJsonFeature = {
@@ -70,8 +70,7 @@ function formatPopulation(value: number | null) {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
-function getFillColor(value: number | null, max: number, isActive: boolean) {
-  if (isActive) return "#14532d";
+function getFillColor(value: number | null, max: number) {
   if (value === null || max <= 0) return "#e5e7eb";
 
   const ratio = value / max;
@@ -96,7 +95,9 @@ function extractCoords(coords: any, acc: [number, number][]) {
   for (const item of coords) extractCoords(item, acc);
 }
 
-function getBoundsFromGeoJSON(data: GeoJsonData): [[number, number], [number, number]] | null {
+function getBoundsFromGeoJSON(
+  data: GeoJsonData
+): [[number, number], [number, number]] | null {
   const points: [number, number][] = [];
   for (const feature of data.features) {
     extractCoords(feature.geometry?.coordinates, points);
@@ -121,16 +122,12 @@ function getBoundsFromGeoJSON(data: GeoJsonData): [[number, number], [number, nu
   ];
 }
 
-export function CensusOverviewMap({
-  counties,
-  activeCountySlug,
-  onCountyHover,
-  onCountyLeave,
+export function CensusChildMapInner({
+  title,
+  childrenRows,
 }: {
-  counties: CountyPopulationRow[];
-  activeCountySlug?: string | null;
-  onCountyHover?: (slug: string) => void;
-  onCountyLeave?: () => void;
+  title: string;
+  childrenRows: ChildRow[];
 }) {
   const [geojson, setGeojson] = useState<GeoJsonData | null>(null);
 
@@ -141,11 +138,11 @@ export function CensusOverviewMap({
       .catch(() => setGeojson(null));
   }, []);
 
-  const countyMap = useMemo(() => {
+  const childMap = useMemo(() => {
     return new Map(
-      counties.map((county) => [getCanonicalCountyName(county.name), county])
+      childrenRows.map((row) => [getCanonicalCountyName(row.name), row])
     );
-  }, [counties]);
+  }, [childrenRows]);
 
   const filteredGeojson = useMemo(() => {
     if (!geojson) return null;
@@ -154,47 +151,40 @@ export function CensusOverviewMap({
       const countyName = getCanonicalCountyName(
         String(feature?.properties?.ADM2_EN || "")
       );
-      return countyMap.has(countyName);
+      return childMap.has(countyName);
     });
 
     return {
       type: "FeatureCollection" as const,
       features,
     };
-  }, [geojson, countyMap]);
+  }, [geojson, childMap]);
 
   const maxPopulation = useMemo(() => {
     return Math.max(
       0,
-      ...counties.map((c) =>
-        typeof c.population === "number" ? c.population : 0
+      ...childrenRows.map((row) =>
+        typeof row.population === "number" ? row.population : 0
       )
     );
-  }, [counties]);
+  }, [childrenRows]);
 
   const mapBounds = useMemo(() => {
     if (!filteredGeojson || filteredGeojson.features.length === 0) return null;
     return getBoundsFromGeoJSON(filteredGeojson);
   }, [filteredGeojson]);
 
-  if (!filteredGeojson || !mapBounds) {
-    return (
-      <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
-        County map could not be loaded. Check that the file exists at{" "}
-        <code>public/data/south-sudan-counties.geojson</code>.
-      </div>
-    );
+  if (!filteredGeojson || !mapBounds || filteredGeojson.features.length === 0) {
+    return null;
   }
 
   return (
-    <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+    <div className="mt-10 overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-200 px-6 py-4">
-        <h2 className="text-lg font-semibold text-slate-900">
-          County population map
-        </h2>
+        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
       </div>
 
-      <div className="h-[720px] w-full bg-white">
+      <div className="h-[640px] w-full bg-white">
         <LeafletMapContainer
           bounds={mapBounds}
           boundsOptions={{ padding: [8, 8] }}
@@ -210,46 +200,31 @@ export function CensusOverviewMap({
           style={{ background: "#ffffff" }}
         >
           <LeafletGeoJSON
-            key={activeCountySlug || "none"}
             data={filteredGeojson}
             style={(feature: GeoJsonFeature) => {
               const countyName = getCanonicalCountyName(
                 String(feature?.properties?.ADM2_EN || "")
               );
-
-              const county = countyMap.get(countyName);
-              const population = county?.population ?? null;
-              const isActive = county?.slug === activeCountySlug;
+              const row = childMap.get(countyName);
+              const population = row?.population ?? null;
 
               return {
-                color: isActive ? "#0f172a" : "#475569",
-                weight: isActive ? 2.2 : 1.2,
-                fillColor: getFillColor(population, maxPopulation, !!isActive),
-                fillOpacity: isActive ? 0.95 : 0.85,
+                color: "#475569",
+                weight: 1.2,
+                fillColor: getFillColor(population, maxPopulation),
+                fillOpacity: 0.85,
               };
             }}
             onEachFeature={(feature: GeoJsonFeature, layer: any) => {
-              const geoCountyName = String(
-                feature?.properties?.ADM2_EN || "Unknown county"
-              );
-              const geoStateName = String(
-                feature?.properties?.ADM1_EN || "Unknown"
-              );
-
-              const county = countyMap.get(
-                getCanonicalCountyName(geoCountyName)
-              );
-
-              const name = county?.name || geoCountyName;
-              const parent = county?.parent_name || geoStateName;
-              const population = county?.population ?? null;
-              const slug = county?.slug;
+              const geoCountyName = String(feature?.properties?.ADM2_EN || "Unknown");
+              const row = childMap.get(getCanonicalCountyName(geoCountyName));
+              const name = row?.name || geoCountyName;
+              const population = row?.population ?? null;
 
               layer.bindTooltip(
                 `
-                  <div style="min-width: 170px">
+                  <div style="min-width: 160px">
                     <strong>${name}</strong><br/>
-                    ${parent}<br/>
                     Population: ${formatPopulation(population)}
                   </div>
                 `,
@@ -261,18 +236,6 @@ export function CensusOverviewMap({
                 direction: "center",
                 className: "county-name-label",
                 opacity: 0.9,
-              });
-
-              layer.on({
-                mouseover: () => {
-                  if (slug && onCountyHover) onCountyHover(slug);
-                },
-                mouseout: () => {
-                  if (onCountyLeave) onCountyLeave();
-                },
-                click: () => {
-                  if (slug) window.location.href = `/census/${slug}`;
-                },
               });
             }}
           />
