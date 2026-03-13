@@ -6,6 +6,23 @@ export default function StatisticsPage() {
       eyebrow="Data & Statistics"
       title="Data, statistics, and structured evidence"
       description="Access datasets, indicators, census structures, methodology, maps, and downloads as one core module within Nile Metrika."
+      highlights={[
+        {
+          title: "Evidence layer",
+          description:
+            "Use this section as the structured data and statistical foundation of the broader portal.",
+        },
+        {
+          title: "From data to interpretation",
+          description:
+            "Connect raw datasets and indicators to publications, geography, and national themes.",
+        },
+        {
+          title: "Public reference support",
+          description:
+            "Support country, governance, economy, society, and environment pages with structured evidence.",
+        },
+      ]}
       sections={[
         {
           title: "Datasets",
@@ -38,9 +55,30 @@ export default function StatisticsPage() {
           href: "/publications",
         },
       ]}
+      featuredResources={[
+        {
+          title: "Datasets",
+          description:
+            "Open downloadable evidence resources across themes and sectors.",
+          href: "/data",
+        },
+        {
+          title: "Indicators",
+          description:
+            "Browse the structured measures that support public understanding and analysis.",
+          href: "/indicators",
+        },
+        {
+          title: "Census",
+          description:
+            "Use the geography and population explorer as a bridge between statistics and place.",
+          href: "/census",
+        },
+      ]}
       relatedLinks={[
         { title: "Search", href: "/search" },
         { title: "Publications", href: "/publications" },
+        { title: "States & Territories", href: "/states" },
       ]}
     />
   );

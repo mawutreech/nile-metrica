@@ -6,6 +6,23 @@ export default function StatesPage() {
       eyebrow="States & Territories"
       title="States, territories, and local geography"
       description="Move from national structure into states, administrative areas, counties, payams, and bomas."
+      highlights={[
+        {
+          title: "Geographic entry point",
+          description:
+            "Use this section to move from national understanding into the territorial structure of South Sudan.",
+        },
+        {
+          title: "Subnational exploration",
+          description:
+            "Follow administrative hierarchy from states and areas to counties, payams, and bomas.",
+        },
+        {
+          title: "Linked maps and population",
+          description:
+            "Connect local geography to census, population, maps, and related public resources.",
+        },
+      ]}
       sections={[
         {
           title: "States",
@@ -32,9 +49,30 @@ export default function StatesPage() {
           href: "/census",
         },
       ]}
+      featuredResources={[
+        {
+          title: "Census Explorer",
+          description:
+            "Open the geography and population explorer across the whole administrative hierarchy.",
+          href: "/census",
+        },
+        {
+          title: "Country",
+          description:
+            "Return to the national frame and administrative structure overview.",
+          href: "/country",
+        },
+        {
+          title: "Data & Statistics",
+          description:
+            "Use linked evidence, indicators, and datasets alongside local geography.",
+          href: "/statistics",
+        },
+      ]}
       relatedLinks={[
         { title: "Census Explorer", href: "/census" },
         { title: "Country", href: "/country" },
+        { title: "Data & Statistics", href: "/statistics" },
       ]}
     />
   );

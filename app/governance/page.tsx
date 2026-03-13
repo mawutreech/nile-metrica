@@ -6,6 +6,23 @@ export default function GovernancePage() {
       eyebrow="Governance"
       title="Governance and public institutions"
       description="Explore how South Sudan is governed through executive structures, public institutions, decentralization, and local government."
+      highlights={[
+        {
+          title: "Institutional structure",
+          description:
+            "Understand the main public institutions and governance layers that shape the state.",
+        },
+        {
+          title: "National to local",
+          description:
+            "Connect central governance with decentralization, local government, and subnational administration.",
+        },
+        {
+          title: "Linked constitutional context",
+          description:
+            "Move from governance structures into the legal and constitutional framework that supports them.",
+        },
+      ]}
       sections={[
         {
           title: "Executive",
@@ -38,9 +55,30 @@ export default function GovernancePage() {
           href: "/states",
         },
       ]}
+      featuredResources={[
+        {
+          title: "Law & Constitution",
+          description:
+            "Move from governance structure into constitutional and legal reference.",
+          href: "/law",
+        },
+        {
+          title: "States & Territories",
+          description:
+            "See how governance connects to the territorial and administrative hierarchy.",
+          href: "/states",
+        },
+        {
+          title: "Publications",
+          description:
+            "Open reports and public-facing resources related to governance and institutional themes.",
+          href: "/publications",
+        },
+      ]}
       relatedLinks={[
         { title: "Law & Constitution", href: "/law" },
         { title: "States & Territories", href: "/states" },
+        { title: "Publications", href: "/publications" },
       ]}
     />
   );

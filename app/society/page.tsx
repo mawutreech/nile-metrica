@@ -6,6 +6,23 @@ export default function SocietyPage() {
       eyebrow="Society & Services"
       title="Society, services, and human development"
       description="Browse education, health, social protection, water, sanitation, and wider public-service themes."
+      highlights={[
+        {
+          title: "Human development focus",
+          description:
+            "Use this section to organize population-facing services and social development themes.",
+        },
+        {
+          title: "National to local relevance",
+          description:
+            "Connect service sectors to states, counties, and population structure across the country.",
+        },
+        {
+          title: "Evidence and geography linked",
+          description:
+            "Move from social themes into census, indicators, and publications.",
+        },
+      ]}
       sections={[
         {
           title: "Education",
@@ -38,9 +55,30 @@ export default function SocietyPage() {
           href: "/society",
         },
       ]}
+      featuredResources={[
+        {
+          title: "Census",
+          description:
+            "Use geography and population structure to support service-focused understanding.",
+          href: "/census",
+        },
+        {
+          title: "Data & Statistics",
+          description:
+            "Connect social themes to indicators, datasets, and structured evidence.",
+          href: "/statistics",
+        },
+        {
+          title: "Publications",
+          description:
+            "Browse briefs, reports, and thematic outputs relevant to human development.",
+          href: "/publications",
+        },
+      ]}
       relatedLinks={[
         { title: "Census", href: "/census" },
         { title: "Data & Statistics", href: "/statistics" },
+        { title: "Publications", href: "/publications" },
       ]}
     />
   );

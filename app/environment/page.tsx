@@ -6,6 +6,23 @@ export default function EnvironmentPage() {
       eyebrow="Environment"
       title="Environment and natural systems"
       description="Explore climate, land, water, forestry, biodiversity, and environmental governance across South Sudan."
+      highlights={[
+        {
+          title: "Environmental reference layer",
+          description:
+            "Use this section to organize environmental themes into clear, public-facing pathways.",
+        },
+        {
+          title: "Nature and territory",
+          description:
+            "Connect environmental systems with geography, land, resources, and local vulnerability.",
+        },
+        {
+          title: "Linked public knowledge",
+          description:
+            "Move from environmental themes into states, publications, and evidence resources.",
+        },
+      ]}
       sections={[
         {
           title: "Climate",
@@ -38,9 +55,30 @@ export default function EnvironmentPage() {
           href: "/environment",
         },
       ]}
+      featuredResources={[
+        {
+          title: "States & Territories",
+          description:
+            "See how environmental realities differ across states and local areas.",
+          href: "/states",
+        },
+        {
+          title: "Publications",
+          description:
+            "Open reports, briefs, and thematic resources relevant to environment and risk.",
+          href: "/publications",
+        },
+        {
+          title: "Data & Statistics",
+          description:
+            "Pair environmental themes with the structured evidence layer of the portal.",
+          href: "/statistics",
+        },
+      ]}
       relatedLinks={[
         { title: "States & Territories", href: "/states" },
         { title: "Publications", href: "/publications" },
+        { title: "Data & Statistics", href: "/statistics" },
       ]}
     />
   );

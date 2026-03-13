@@ -6,6 +6,23 @@ export default function LawPage() {
       eyebrow="Law & Constitution"
       title="Law, constitution, and policy"
       description="Use Nile Metrika as an entry point into the constitutional, legal, and policy framework of South Sudan."
+      highlights={[
+        {
+          title: "Constitutional anchor",
+          description:
+            "Use this section to organize legal and constitutional reference around the structure of the state.",
+        },
+        {
+          title: "Law and policy pathway",
+          description:
+            "Connect major legal instruments, regulations, and policy frameworks by theme.",
+        },
+        {
+          title: "Linked governance context",
+          description:
+            "Move between legal foundations and the public institutions that operate within them.",
+        },
+      ]}
       sections={[
         {
           title: "Constitution",
@@ -32,9 +49,30 @@ export default function LawPage() {
           href: "/law",
         },
       ]}
+      featuredResources={[
+        {
+          title: "Governance",
+          description:
+            "Connect legal reference with executive, legislature, judiciary, and public administration.",
+          href: "/governance",
+        },
+        {
+          title: "Publications",
+          description:
+            "Use reports and briefs as supporting material for legal and policy themes.",
+          href: "/publications",
+        },
+        {
+          title: "Data & Statistics",
+          description:
+            "Pair legal and policy reading with structured evidence and public data.",
+          href: "/statistics",
+        },
+      ]}
       relatedLinks={[
         { title: "Governance", href: "/governance" },
         { title: "Publications", href: "/publications" },
+        { title: "Data & Statistics", href: "/statistics" },
       ]}
     />
   );
