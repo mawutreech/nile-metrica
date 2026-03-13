@@ -1,66 +1,258 @@
 import Link from "next/link";
 
+function CountryIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-6 w-6 text-emerald-700"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18" />
+      <path d="M12 3a15 15 0 0 1 0 18" />
+      <path d="M12 3a15 15 0 0 0 0 18" />
+    </svg>
+  );
+}
+
+function GovernanceIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-6 w-6 text-emerald-700"
+      aria-hidden="true"
+    >
+      <path d="M3 10h18" />
+      <path d="M5 10v8" />
+      <path d="M9 10v8" />
+      <path d="M15 10v8" />
+      <path d="M19 10v8" />
+      <path d="M2 18h20" />
+      <path d="M12 4 3 8h18l-9-4Z" />
+    </svg>
+  );
+}
+
+function LawIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-6 w-6 text-emerald-700"
+      aria-hidden="true"
+    >
+      <path d="M12 3v18" />
+      <path d="M7 7h10" />
+      <path d="m7 7-3 5a2.5 2.5 0 0 0 5 0L7 7Z" />
+      <path d="m17 7-3 5a2.5 2.5 0 0 0 5 0l-2-5Z" />
+      <path d="M8 21h8" />
+    </svg>
+  );
+}
+
+function EconomyIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-6 w-6 text-emerald-700"
+      aria-hidden="true"
+    >
+      <path d="M4 19h16" />
+      <path d="M6 15V9" />
+      <path d="M10 15V5" />
+      <path d="M14 15v-3" />
+      <path d="M18 15V7" />
+    </svg>
+  );
+}
+
+function SocietyIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-6 w-6 text-emerald-700"
+      aria-hidden="true"
+    >
+      <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+      <circle cx="9.5" cy="7" r="3" />
+      <path d="M21 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 4.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function EnvironmentIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-6 w-6 text-emerald-700"
+      aria-hidden="true"
+    >
+      <path d="M6 21c6 0 12-6 12-14-8 0-14 6-14 12 0 1.1.9 2 2 2Z" />
+      <path d="M10 14c1.5-1.5 4-3 8-4" />
+    </svg>
+  );
+}
+
+function TerritoriesIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-6 w-6 text-emerald-700"
+      aria-hidden="true"
+    >
+      <path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2V6Z" />
+      <path d="M9 4v14" />
+      <path d="M15 6v14" />
+    </svg>
+  );
+}
+
+function DataIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-6 w-6 text-emerald-700"
+      aria-hidden="true"
+    >
+      <ellipse cx="12" cy="5" rx="7" ry="3" />
+      <path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5" />
+      <path d="M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" />
+    </svg>
+  );
+}
+
+function PublicationIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-6 w-6 text-emerald-700"
+      aria-hidden="true"
+    >
+      <path d="M6 3h9l3 3v15H6z" />
+      <path d="M15 3v4h4" />
+      <path d="M9 10h6" />
+      <path d="M9 14h6" />
+      <path d="M9 18h4" />
+    </svg>
+  );
+}
+
 const themeCards = [
   {
     title: "Country",
     description:
       "Start with South Sudan’s national overview, geography, population, and administrative structure.",
     href: "/country",
+    icon: <CountryIcon />,
   },
   {
     title: "Governance",
     description:
       "Explore institutions, executive structures, decentralization, and public administration.",
     href: "/governance",
+    icon: <GovernanceIcon />,
   },
   {
     title: "Law & Constitution",
     description:
       "Access constitutional, legal, and policy reference points that shape the state.",
     href: "/law",
+    icon: <LawIcon />,
   },
   {
     title: "Economy",
     description:
       "Review macroeconomic structure, trade, public finance, agriculture, and productive sectors.",
     href: "/economy",
+    icon: <EconomyIcon />,
   },
   {
     title: "Society & Services",
     description:
       "Browse education, health, social services, and wider human development themes.",
     href: "/society",
+    icon: <SocietyIcon />,
   },
   {
     title: "Environment",
     description:
       "Explore land, climate, water, forestry, biodiversity, and environmental governance.",
     href: "/environment",
+    icon: <EnvironmentIcon />,
   },
   {
     title: "States & Territories",
     description:
       "Move from the national level into states, administrative areas, counties, and local profiles.",
     href: "/states",
+    icon: <TerritoriesIcon />,
   },
   {
     title: "Data & Statistics",
     description:
       "Access datasets, indicators, maps, census hierarchy, and structured statistical resources.",
     href: "/statistics",
+    icon: <DataIcon />,
   },
   {
     title: "Publications",
     description:
       "Open reports, briefs, bulletins, and thematic knowledge outputs.",
     href: "/publications",
+    icon: <PublicationIcon />,
   },
 ];
 
 const featuredResources = [
   {
     title: "Census Overview",
-    description: "Explore states, counties, and population through maps and tables.",
+    description:
+      "Explore states, counties, and population through maps and tables.",
     href: "/census",
   },
   {
@@ -70,7 +262,8 @@ const featuredResources = [
   },
   {
     title: "Indicators",
-    description: "Review measures, time series, and structured statistical definitions.",
+    description:
+      "Review measures, time series, and structured statistical definitions.",
     href: "/indicators",
   },
   {
@@ -179,10 +372,15 @@ export default function HomePage() {
                 href={card.href}
                 className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-emerald-200 hover:shadow-md"
               >
-                <h3 className="text-lg font-semibold text-slate-900">
-                  {card.title}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-slate-600">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-2xl bg-emerald-50 p-3">
+                    {card.icon}
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    {card.title}
+                  </h3>
+                </div>
+                <p className="mt-4 text-sm leading-7 text-slate-600">
                   {card.description}
                 </p>
                 <p className="mt-4 text-sm font-medium text-emerald-700">
@@ -202,7 +400,8 @@ export default function HomePage() {
                 Explore by geography
               </p>
               <h2 className="mt-3 text-2xl font-semibold text-slate-900 sm:text-3xl">
-                Move from the national level into states, territories, counties, payams, and bomas.
+                Move from the national level into states, territories, counties,
+                payams, and bomas.
               </h2>
               <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
                 Use the geography explorer to browse South Sudan by place and
@@ -251,12 +450,20 @@ export default function HomePage() {
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14">
         <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700 sm:text-sm">
-            Data & statistics
-          </p>
-          <h2 className="mt-3 text-2xl font-semibold text-slate-900 sm:text-3xl">
-            Structured evidence remains a core part of Nile Metrika.
-          </h2>
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-emerald-50 p-3">
+              <DataIcon />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700 sm:text-sm">
+                Data & statistics
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900 sm:text-3xl">
+                Structured evidence remains a core part of Nile Metrika.
+              </h2>
+            </div>
+          </div>
+
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
             Datasets, indicators, maps, census structures, and publications
             remain central to the portal, but now sit inside a wider national

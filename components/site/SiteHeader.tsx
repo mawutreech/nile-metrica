@@ -10,8 +10,10 @@ type MenuItem = {
 
 type NavGroup = {
   label: string;
+  sublabel: string;
   href?: string;
   items?: MenuItem[];
+  icon: React.ReactNode;
 };
 
 function SearchIcon() {
@@ -32,9 +34,112 @@ function SearchIcon() {
   );
 }
 
+function GlobeIcon({ className = "h-7 w-7 text-slate-500" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18" />
+      <path d="M12 3a15 15 0 0 1 0 18" />
+      <path d="M12 3a15 15 0 0 0 0 18" />
+    </svg>
+  );
+}
+
+function GovernmentIcon({ className = "h-7 w-7 text-slate-500" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M3 10h18" />
+      <path d="M5 10v8" />
+      <path d="M9 10v8" />
+      <path d="M15 10v8" />
+      <path d="M19 10v8" />
+      <path d="M2 18h20" />
+      <path d="M12 4 3 8h18l-9-4Z" />
+    </svg>
+  );
+}
+
+function LawIcon({ className = "h-7 w-7 text-slate-500" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M12 3v18" />
+      <path d="M7 7h10" />
+      <path d="m7 7-3 5a2.5 2.5 0 0 0 5 0L7 7Z" />
+      <path d="m17 7-3 5a2.5 2.5 0 0 0 5 0l-2-5Z" />
+      <path d="M8 21h8" />
+    </svg>
+  );
+}
+
+function EconomyIcon({ className = "h-7 w-7 text-slate-500" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M4 19h16" />
+      <path d="M6 15V9" />
+      <path d="M10 15V5" />
+      <path d="M14 15v-3" />
+      <path d="M18 15V7" />
+    </svg>
+  );
+}
+
+function SocietyIcon({ className = "h-7 w-7 text-slate-500" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+      <circle cx="9.5" cy="7" r="3" />
+      <path d="M21 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 4.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function EnvironmentIcon({ className = "h-7 w-7 text-slate-500" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M6 21c6 0 12-6 12-14-8 0-14 6-14 12 0 1.1.9 2 2 2Z" />
+      <path d="M10 14c1.5-1.5 4-3 8-4" />
+    </svg>
+  );
+}
+
+function MapIcon({ className = "h-7 w-7 text-slate-500" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2V6Z" />
+      <path d="M9 4v14" />
+      <path d="M15 6v14" />
+    </svg>
+  );
+}
+
+function DataIcon({ className = "h-7 w-7 text-emerald-600" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <ellipse cx="12" cy="5" rx="7" ry="3" />
+      <path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5" />
+      <path d="M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" />
+    </svg>
+  );
+}
+
+function PublicationIcon({ className = "h-7 w-7 text-slate-500" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M6 3h9l3 3v15H6z" />
+      <path d="M15 3v4h4" />
+      <path d="M9 10h6" />
+      <path d="M9 14h6" />
+      <path d="M9 18h4" />
+    </svg>
+  );
+}
+
 const navGroups: NavGroup[] = [
   {
-    label: "Country",
+    label: "COUNTRY",
+    sublabel: "overview and geography",
+    icon: <GlobeIcon />,
     items: [
       { label: "Overview", href: "/country" },
       { label: "Geography", href: "/country" },
@@ -44,7 +149,9 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: "Governance",
+    label: "GOVERNANCE",
+    sublabel: "institutions and public system",
+    icon: <GovernmentIcon />,
     items: [
       { label: "Overview", href: "/governance" },
       { label: "Executive", href: "/governance" },
@@ -54,7 +161,9 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: "Law & Constitution",
+    label: "LAW",
+    sublabel: "constitution and policy",
+    icon: <LawIcon />,
     items: [
       { label: "Overview", href: "/law" },
       { label: "Constitution", href: "/law" },
@@ -64,7 +173,9 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: "Economy",
+    label: "ECONOMY",
+    sublabel: "markets and public finance",
+    icon: <EconomyIcon />,
     items: [
       { label: "Overview", href: "/economy" },
       { label: "Macroeconomy", href: "/economy" },
@@ -74,7 +185,9 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: "Society & Services",
+    label: "SOCIETY",
+    sublabel: "services and human development",
+    icon: <SocietyIcon />,
     items: [
       { label: "Overview", href: "/society" },
       { label: "Education", href: "/society" },
@@ -84,7 +197,9 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: "Environment",
+    label: "ENVIRONMENT",
+    sublabel: "land, climate and resources",
+    icon: <EnvironmentIcon />,
     items: [
       { label: "Overview", href: "/environment" },
       { label: "Climate", href: "/environment" },
@@ -94,7 +209,9 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: "States & Territories",
+    label: "STATES",
+    sublabel: "territories and local geography",
+    icon: <MapIcon />,
     items: [
       { label: "Overview", href: "/states" },
       { label: "All States", href: "/states" },
@@ -104,7 +221,9 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: "Data & Statistics",
+    label: "DATA & STATS",
+    sublabel: "datasets and indicators",
+    icon: <DataIcon />,
     items: [
       { label: "Overview", href: "/statistics" },
       { label: "Datasets", href: "/data" },
@@ -115,18 +234,14 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: "Publications",
+    label: "PUBLICATIONS",
+    sublabel: "reports and briefs",
+    icon: <PublicationIcon />,
     href: "/publications",
   },
 ];
 
-function DesktopDropdown({
-  open,
-  items,
-}: {
-  open: boolean;
-  items: MenuItem[];
-}) {
+function DesktopDropdown({ open, items }: { open: boolean; items: MenuItem[] }) {
   const [mounted, setMounted] = useState(open);
 
   useEffect(() => {
@@ -145,8 +260,8 @@ function DesktopDropdown({
       <div className="absolute left-0 top-full h-3 w-full" />
       <div
         className={[
-          "absolute left-0 top-full z-50 mt-3 min-w-[260px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl transition-all duration-200",
-          open ? "translate-y-0 opacity-100" : "-translate-y-1 opacity-0 pointer-events-none",
+          "absolute left-0 top-full z-50 mt-3 min-w-[280px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl transition-all duration-200",
+          open ? "translate-y-0 opacity-100" : "-translate-y-1 pointer-events-none opacity-0",
         ].join(" ")}
       >
         {items.map((item, index) => (
@@ -251,7 +366,7 @@ export function SiteHeader() {
       </div>
 
       <div className="hidden border-b border-slate-200 bg-white xl:block">
-        <div className="mx-auto flex max-w-7xl items-center gap-1 px-4 py-3 sm:px-6">
+        <div className="mx-auto grid max-w-7xl grid-cols-9">
           {navGroups.map((group) => {
             const isOpen = openMenu === group.label;
 
@@ -260,9 +375,15 @@ export function SiteHeader() {
                 <Link
                   key={group.label}
                   href={group.href}
-                  className="rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
+                  className="flex min-h-[118px] flex-col items-center justify-center border-r border-slate-200 px-4 py-5 text-center transition last:border-r-0 hover:bg-slate-50"
                 >
-                  {group.label}
+                  <div className="mb-3">{group.icon}</div>
+                  <p className="text-[13px] font-medium tracking-[0.06em] text-slate-800">
+                    {group.label}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-5 text-slate-600">
+                    {group.sublabel}
+                  </p>
                 </Link>
               );
             }
@@ -270,25 +391,27 @@ export function SiteHeader() {
             return (
               <div
                 key={group.label}
-                className="relative"
+                className="relative border-r border-slate-200 last:border-r-0"
                 onMouseEnter={() => openDropdown(group.label)}
                 onMouseLeave={closeDropdownSoon}
               >
                 <button
                   type="button"
                   onClick={() =>
-                    setOpenMenu((current) =>
-                      current === group.label ? null : group.label
-                    )
+                    setOpenMenu((current) => (current === group.label ? null : group.label))
                   }
                   className={[
-                    "rounded-xl px-4 py-2 text-sm font-medium transition",
-                    isOpen
-                      ? "bg-slate-50 text-slate-900"
-                      : "text-slate-700 hover:bg-slate-50 hover:text-slate-900",
+                    "flex min-h-[118px] w-full flex-col items-center justify-center px-4 py-5 text-center transition",
+                    isOpen ? "bg-slate-50" : "hover:bg-slate-50",
                   ].join(" ")}
                 >
-                  {group.label}
+                  <div className="mb-3">{group.icon}</div>
+                  <p className="text-[13px] font-medium tracking-[0.06em] text-slate-800">
+                    {group.label}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-5 text-slate-600">
+                    {group.sublabel}
+                  </p>
                 </button>
 
                 <DesktopDropdown open={isOpen} items={group.items || []} />
@@ -301,9 +424,7 @@ export function SiteHeader() {
       <div
         className={[
           "overflow-hidden bg-white transition-all duration-200 lg:hidden",
-          mobileOpen
-            ? "max-h-[100rem] border-b border-slate-200 opacity-100"
-            : "max-h-0 border-b-0 opacity-0",
+          mobileOpen ? "max-h-[100rem] border-b border-slate-200 opacity-100" : "max-h-0 border-b-0 opacity-0",
         ].join(" ")}
       >
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
@@ -338,9 +459,14 @@ export function SiteHeader() {
                 className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-slate-900">
-                    {group.label}
-                  </p>
+                  <div className="flex items-start gap-3">
+                    <span className="mt-0.5 text-slate-500">{group.icon}</span>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{group.label}</p>
+                      <p className="mt-1 text-sm text-slate-600">{group.sublabel}</p>
+                    </div>
+                  </div>
+
                   {group.href ? (
                     <Link
                       href={group.href}
