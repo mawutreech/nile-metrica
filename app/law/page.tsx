@@ -51,6 +51,12 @@ export default function LawPage() {
       ]}
       featuredResources={[
         {
+          title: "Local Government Act, 2009",
+          description:
+            "Explore the legal framework for local government structures, powers, functions, duties, and finances.",
+          href: "/law/local-government-act",
+        },
+        {
           title: "Governance",
           description:
             "Connect legal reference with executive, legislature, judiciary, and public administration.",
