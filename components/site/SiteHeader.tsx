@@ -34,7 +34,25 @@ function SearchIcon() {
   );
 }
 
-function GlobeIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
+function HomeIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M3 11.5 12 4l9 7.5" />
+      <path d="M5 10.5V20h14v-9.5" />
+    </svg>
+  );
+}
+
+function SouthSudanIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -54,51 +72,7 @@ function GlobeIcon({ className = "h-8 w-8 text-slate-500" }: { className?: strin
   );
 }
 
-function GovernmentIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M3 10h18" />
-      <path d="M5 10v8" />
-      <path d="M9 10v8" />
-      <path d="M15 10v8" />
-      <path d="M19 10v8" />
-      <path d="M2 18h20" />
-      <path d="M12 4 3 8h18l-9-4Z" />
-    </svg>
-  );
-}
-
-function LawIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M12 3v18" />
-      <path d="M7 7h10" />
-      <path d="m7 7-3 5a2.5 2.5 0 0 0 5 0L7 7Z" />
-      <path d="m17 7-3 5a2.5 2.5 0 0 0 5 0l-2-5Z" />
-      <path d="M8 21h8" />
-    </svg>
-  );
-}
-
-function EconomyIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
+function BusinessIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -119,7 +93,7 @@ function EconomyIcon({ className = "h-8 w-8 text-slate-500" }: { className?: str
   );
 }
 
-function SocietyIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
+function PoliticsIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -131,15 +105,14 @@ function SocietyIcon({ className = "h-8 w-8 text-slate-500" }: { className?: str
       className={className}
       aria-hidden="true"
     >
-      <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
-      <circle cx="9.5" cy="7" r="3" />
-      <path d="M21 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 4.13a4 4 0 0 1 0 7.75" />
+      <path d="M4 20h16" />
+      <path d="M6 20V8" />
+      <path d="M6 8h11l-2 3 2 3H6" />
     </svg>
   );
 }
 
-function EnvironmentIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
+function OpinionIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -151,13 +124,12 @@ function EnvironmentIcon({ className = "h-8 w-8 text-slate-500" }: { className?:
       className={className}
       aria-hidden="true"
     >
-      <path d="M6 21c6 0 12-6 12-14-8 0-14 6-14 12 0 1.1.9 2 2 2Z" />
-      <path d="M10 14c1.5-1.5 4-3 8-4" />
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
   );
 }
 
-function MapIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
+function CultureSportIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -169,157 +141,85 @@ function MapIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string 
       className={className}
       aria-hidden="true"
     >
-      <path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2V6Z" />
-      <path d="M9 4v14" />
-      <path d="M15 6v14" />
-    </svg>
-  );
-}
-
-function DataIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <ellipse cx="12" cy="5" rx="7" ry="3" />
-      <path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5" />
-      <path d="M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" />
-    </svg>
-  );
-}
-
-function PublicationIcon({ className = "h-8 w-8 text-slate-500" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M6 3h9l3 3v15H6z" />
-      <path d="M15 3v4h4" />
-      <path d="M9 10h6" />
-      <path d="M9 14h6" />
-      <path d="M9 18h4" />
+      <circle cx="8" cy="8" r="3" />
+      <path d="M14 7h7" />
+      <path d="M14 12h5" />
+      <path d="M5 21l4-6 3 2 3-4 4 8" />
     </svg>
   );
 }
 
 const navGroups: NavGroup[] = [
   {
-    label: "COUNTRY",
-    sublabel: "overview and geography",
+    label: "HOME",
+    sublabel: "front page and highlights",
+    href: "/",
+    icon: <HomeIcon />,
+  },
+  {
+    label: "SOUTH SUDAN",
+    sublabel: "country and national reference",
     href: "/country",
-    icon: <GlobeIcon />,
+    icon: <SouthSudanIcon />,
     items: [
-      { label: "Geography", href: "/country" },
-      { label: "History", href: "/country" },
-      { label: "Population", href: "/census" },
-      { label: "Administrative Structure", href: "/states" },
+      { label: "Country Overview", href: "/country" },
+      { label: "States & Territories", href: "/states" },
+      { label: "Governance", href: "/governance" },
+      { label: "Law & Constitution", href: "/law" },
+      { label: "Society", href: "/society" },
+      { label: "Environment", href: "/environment" },
+      { label: "Census", href: "/census" },
     ],
   },
   {
-    label: "GOVERNANCE",
-    sublabel: "institutions and public system",
-    href: "/governance",
-    icon: <GovernmentIcon />,
-    items: [
-      { label: "Executive", href: "/governance" },
-      { label: "Legislature", href: "/governance" },
-      { label: "Judiciary", href: "/governance" },
-      { label: "Local Government", href: "/states" },
-    ],
-  },
-  {
-    label: "LAW",
-    sublabel: "constitution and policy",
-    href: "/law",
-    icon: <LawIcon />,
-    items: [
-      { label: "Constitution", href: "/law" },
-      { label: "Laws", href: "/law" },
-      { label: "Regulations", href: "/law" },
-      { label: "Policy Frameworks", href: "/law" },
-      { label: "Local Government Act, 2009", href: "/law/local-government-act" },
-    ],
-  },
-  {
-    label: "ECONOMY",
-    sublabel: "markets and public finance",
+    label: "BUSINESS",
+    sublabel: "economy markets and data",
     href: "/economy",
-    icon: <EconomyIcon />,
+    icon: <BusinessIcon />,
     items: [
-      { label: "Macroeconomy", href: "/economy" },
-      { label: "Public Finance", href: "/economy" },
-      { label: "Trade", href: "/economy" },
-      { label: "Agriculture", href: "/economy" },
-    ],
-  },
-  {
-    label: "SOCIETY",
-    sublabel: "services and human development",
-    href: "/society",
-    icon: <SocietyIcon />,
-    items: [
-      { label: "Education", href: "/society" },
-      { label: "Health", href: "/society" },
-      { label: "Water & Sanitation", href: "/society" },
-      { label: "Social Protection", href: "/society" },
-    ],
-  },
-  {
-    label: "ENVIRONMENT",
-    sublabel: "land, climate and resources",
-    href: "/environment",
-    icon: <EnvironmentIcon />,
-    items: [
-      { label: "Climate", href: "/environment" },
-      { label: "Land", href: "/environment" },
-      { label: "Water Resources", href: "/environment" },
-      { label: "Disaster Risk", href: "/environment" },
-    ],
-  },
-  {
-    label: "STATES",
-    sublabel: "territories and local geography",
-    href: "/states",
-    icon: <MapIcon />,
-    items: [
-      { label: "All States", href: "/states" },
-      { label: "Administrative Areas", href: "/states" },
-      { label: "Census Explorer", href: "/census" },
-      { label: "County Profiles", href: "/census" },
-    ],
-  },
-  {
-    label: "DATA & STATS",
-    sublabel: "datasets and indicators",
-    href: "/statistics",
-    icon: <DataIcon />,
-    items: [
+      { label: "Economy", href: "/economy" },
+      { label: "Data & Statistics", href: "/statistics" },
       { label: "Datasets", href: "/data" },
       { label: "Indicators", href: "/indicators" },
-      { label: "Census", href: "/census" },
       { label: "Methodology", href: "/methodology" },
       { label: "Publications", href: "/publications" },
     ],
   },
   {
-    label: "PUBLICATIONS",
-    sublabel: "reports and briefs",
-    href: "/publications",
-    icon: <PublicationIcon />,
+    label: "POLITICS",
+    sublabel: "public affairs and power",
+    href: "/politics",
+    icon: <PoliticsIcon />,
+    items: [
+      { label: "Political System", href: "/politics" },
+      { label: "Elections", href: "/politics" },
+      { label: "Parties", href: "/politics" },
+      { label: "Public Affairs", href: "/politics" },
+    ],
+  },
+  {
+    label: "OPINION",
+    sublabel: "analysis and commentary",
+    href: "/opinion",
+    icon: <OpinionIcon />,
+    items: [
+      { label: "Editorials", href: "/opinion" },
+      { label: "Commentary", href: "/opinion" },
+      { label: "Analysis", href: "/opinion" },
+      { label: "Essays", href: "/opinion" },
+    ],
+  },
+  {
+    label: "CULTURE & SPORT",
+    sublabel: "heritage arts and games",
+    href: "/culture-sport",
+    icon: <CultureSportIcon />,
+    items: [
+      { label: "Culture", href: "/culture-sport" },
+      { label: "Heritage", href: "/culture-sport" },
+      { label: "Arts & Literature", href: "/culture-sport" },
+      { label: "Sport", href: "/culture-sport" },
+    ],
   },
 ];
 
@@ -348,7 +248,7 @@ function DesktopDropdown({
       <div className="absolute left-0 top-full h-3 w-full" />
       <div
         className={[
-          "absolute left-0 top-full z-50 mt-3 min-w-[280px] overflow-hidden rounded-none border border-[#d9d9d9] bg-white shadow-lg transition-all duration-200",
+          "absolute left-0 top-full z-50 mt-3 min-w-[300px] overflow-hidden rounded-none border border-[#d9d9d9] bg-white shadow-lg transition-all duration-200",
           open
             ? "translate-y-0 opacity-100"
             : "-translate-y-1 pointer-events-none opacity-0",
@@ -374,6 +274,7 @@ function DesktopDropdown({
 export function SiteHeader() {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileSectionOpen, setMobileSectionOpen] = useState<string | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearCloseTimer = () => {
@@ -459,7 +360,7 @@ export function SiteHeader() {
       </div>
 
       <div className="hidden border-b border-[#dcdcdc] bg-[#f3f3f3] xl:block">
-        <div className="mx-auto grid max-w-7xl grid-cols-9">
+        <div className="mx-auto grid max-w-7xl grid-cols-6">
           {navGroups.map((group) => {
             const isOpen = openMenu === group.label;
 
@@ -538,49 +439,70 @@ export function SiteHeader() {
               </div>
             </form>
 
-            {navGroups.map((group) => (
-              <div
-                key={group.label}
-                className="border border-[#dcdcdc] bg-[#f5f5f5] p-4"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <span className="mt-0.5 text-slate-500">{group.icon}</span>
-                    <div>
-                      <p className="text-sm font-semibold text-[#333]">
-                        {group.label}
-                      </p>
-                      <p className="mt-1 text-sm text-[#555]">
-                        {group.sublabel}
-                      </p>
-                    </div>
-                  </div>
+            {navGroups.map((group) => {
+              const isExpanded = mobileSectionOpen === group.label;
 
-                  <Link
-                    href={group.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="text-sm font-medium text-[#2f6e57]"
-                  >
-                    Open
-                  </Link>
-                </div>
+              return (
+                <div
+                  key={group.label}
+                  className="border border-[#dcdcdc] bg-[#f5f5f5]"
+                >
+                  <div className="flex items-center justify-between gap-3 p-4">
+                    <Link
+                      href={group.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="flex min-w-0 items-start gap-3"
+                    >
+                      <span className="mt-0.5 text-slate-500">{group.icon}</span>
+                      <div>
+                        <p className="text-sm font-semibold text-[#333]">
+                          {group.label}
+                        </p>
+                        <p className="mt-1 text-sm text-[#555]">
+                          {group.sublabel}
+                        </p>
+                      </div>
+                    </Link>
 
-                {group.items ? (
-                  <div className="mt-3 space-y-2">
-                    {group.items.map((item) => (
-                      <Link
-                        key={item.href + item.label}
-                        href={item.href}
-                        onClick={() => setMobileOpen(false)}
-                        className="block bg-white px-4 py-3 text-sm text-[#444]"
+                    {group.items ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMobileSectionOpen((current) =>
+                            current === group.label ? null : group.label
+                          )
+                        }
+                        className="shrink-0 border border-[#d9d9d9] bg-white px-3 py-2 text-sm text-[#444]"
+                        aria-expanded={isExpanded}
+                        aria-label={`Toggle ${group.label} submenu`}
                       >
-                        {item.label}
-                      </Link>
-                    ))}
+                        {isExpanded ? "−" : "+"}
+                      </button>
+                    ) : null}
                   </div>
-                ) : null}
-              </div>
-            ))}
+
+                  {group.items && isExpanded ? (
+                    <div className="border-t border-[#dcdcdc] bg-white p-3">
+                      <div className="space-y-2">
+                        {group.items.map((item) => (
+                          <Link
+                            key={item.href + item.label}
+                            href={item.href}
+                            onClick={() => {
+                              setMobileOpen(false);
+                              setMobileSectionOpen(null);
+                            }}
+                            className="block border border-[#e5e5e5] bg-[#fafafa] px-4 py-3 text-sm text-[#444]"
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
 
             <Link
               href="/admin"
