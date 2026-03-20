@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 import SectionStories from "@/components/site/SectionStories";
 
 export default function CultureSportPage() {

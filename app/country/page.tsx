@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 import type { Metadata } from "next";
 import { SectionLanding } from "@/components/site/SectionLanding";
 import SectionStories from "@/components/site/SectionStories";
