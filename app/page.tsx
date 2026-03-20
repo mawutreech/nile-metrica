@@ -31,11 +31,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function StoryCard({
-  story,
-}: {
-  story: Story;
-}) {
+function StoryCard({ story }: { story: Story }) {
   return (
     <Link
       href={`/stories/${story.slug}`}
@@ -50,18 +46,12 @@ function StoryCard({
       {story.excerpt ? (
         <p className="mt-3 text-sm leading-7 text-[#555]">{story.excerpt}</p>
       ) : null}
-      <p className="mt-3 text-sm text-slate-500">
-        {story.reading_time} min read
-      </p>
+      <p className="mt-3 text-sm text-slate-500">{story.reading_time} min read</p>
     </Link>
   );
 }
 
-function CompactStoryLink({
-  story,
-}: {
-  story: Story;
-}) {
+function CompactStoryLink({ story }: { story: Story }) {
   return (
     <Link
       href={`/stories/${story.slug}`}
@@ -78,6 +68,35 @@ function CompactStoryLink({
   );
 }
 
+function SectionBlock({
+  title,
+  subtitle,
+  stories,
+  emptyMessage,
+}: {
+  title: string;
+  subtitle: string;
+  stories: Story[];
+  emptyMessage: string;
+}) {
+  return (
+    <section className="border-b border-[#dcdcdc] py-10">
+      <SectionLabel>{subtitle}</SectionLabel>
+      <h2 className="mt-2 text-3xl font-semibold text-[#2f2f2f]">{title}</h2>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {stories.length > 0 ? (
+          stories.map((story) => <StoryCard key={story.id} story={story} />)
+        ) : (
+          <div className="border border-[#d8d8d8] bg-white p-5 text-sm text-slate-600">
+            {emptyMessage}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export default async function HomePage() {
   const supabase = createSupabaseServerClient();
 
@@ -88,16 +107,33 @@ export default async function HomePage() {
     )
     .eq("status", "published")
     .order("published_at", { ascending: false })
-    .limit(12);
+    .limit(30);
 
   const stories: Story[] = data ?? [];
 
   const leadStory = stories[0] ?? null;
   const latestStories = stories.slice(1, 5);
-  const opinionStories = stories.filter((s) => s.section === "opinion").slice(0, 2);
-  const analysisStories = stories
-    .filter((s) => s.category?.toLowerCase() === "analysis")
-    .slice(0, 2);
+
+  const southSudanStories = stories
+    .filter((s) => s.section === "south-sudan")
+    .slice(0, 3);
+
+  const businessStories = stories
+    .filter((s) => s.section === "business")
+    .slice(0, 3);
+
+  const politicsStories = stories
+    .filter((s) => s.section === "politics")
+    .slice(0, 3);
+
+  const opinionStories = stories
+    .filter((s) => s.section === "opinion")
+    .slice(0, 3);
+
+  const cultureSportStories = stories
+    .filter((s) => s.section === "culture-sport")
+    .slice(0, 3);
+
   const publicationStories = stories
     .filter(
       (s) =>
@@ -238,19 +274,19 @@ export default async function HomePage() {
           </div>
 
           <div>
-            <SectionLabel>Editorial</SectionLabel>
+            <SectionLabel>Publications</SectionLabel>
             <h2 className="mt-2 text-3xl font-semibold text-[#2f2f2f]">
-              Opinion and analysis
+              Reports, bulletins, and reference pieces
             </h2>
 
             <div className="mt-6 space-y-4">
-              {[...opinionStories, ...analysisStories].length > 0 ? (
-                [...opinionStories, ...analysisStories]
-                  .slice(0, 4)
-                  .map((story) => <StoryCard key={story.id} story={story} />)
+              {publicationStories.length > 0 ? (
+                publicationStories.map((story) => (
+                  <StoryCard key={story.id} story={story} />
+                ))
               ) : (
                 <div className="border border-[#d8d8d8] bg-white p-5 text-sm text-slate-600">
-                  Opinion and analysis stories will appear here once published.
+                  Publication-style stories will appear here once published.
                 </div>
               )}
             </div>
@@ -258,24 +294,40 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="py-10">
-        <SectionLabel>Publications</SectionLabel>
-        <h2 className="mt-2 text-3xl font-semibold text-[#2f2f2f]">
-          Reports, bulletins, and reference pieces
-        </h2>
+      <SectionBlock
+        title="South Sudan"
+        subtitle="National reference"
+        stories={southSudanStories}
+        emptyMessage="South Sudan stories will appear here once published."
+      />
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {publicationStories.length > 0 ? (
-            publicationStories.map((story) => (
-              <StoryCard key={story.id} story={story} />
-            ))
-          ) : (
-            <div className="border border-[#d8d8d8] bg-white p-5 text-sm text-slate-600">
-              Publication-style stories will appear here once published.
-            </div>
-          )}
-        </div>
-      </section>
+      <SectionBlock
+        title="Business"
+        subtitle="Economy, markets, and data"
+        stories={businessStories}
+        emptyMessage="Business stories will appear here once published."
+      />
+
+      <SectionBlock
+        title="Politics"
+        subtitle="Public affairs and power"
+        stories={politicsStories}
+        emptyMessage="Politics stories will appear here once published."
+      />
+
+      <SectionBlock
+        title="Opinion"
+        subtitle="Analysis and commentary"
+        stories={opinionStories}
+        emptyMessage="Opinion stories will appear here once published."
+      />
+
+      <SectionBlock
+        title="Culture & Sport"
+        subtitle="Heritage, arts, and games"
+        stories={cultureSportStories}
+        emptyMessage="Culture & Sport stories will appear here once published."
+      />
     </main>
   );
 }
