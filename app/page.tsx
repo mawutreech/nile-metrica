@@ -1,8 +1,9 @@
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "South Sudan Knowledge Portal",
@@ -113,9 +114,6 @@ export default async function HomePage() {
 
   const stories: Story[] = data ?? [];
 
-  const leadStory = stories[0] ?? null;
-  const latestStories = stories.slice(1, 5);
-
   const southSudanStories = stories
     .filter((s) => s.section === "south-sudan")
     .slice(0, 3);
@@ -145,115 +143,8 @@ export default async function HomePage() {
     )
     .slice(0, 3);
 
-  const fallbackLinks = [
-    { title: "South Sudan", href: "/country" },
-    { title: "Business", href: "/economy" },
-    { title: "Politics", href: "/politics" },
-    { title: "Opinion", href: "/opinion" },
-    { title: "Culture & Sport", href: "/culture-sport" },
-    { title: "Publications", href: "/publications" },
-  ];
-
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
-      <section className="border-b border-[#dcdcdc] pb-10">
-        {leadStory ? (
-          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="border border-[#d8d8d8] bg-white">
-              {leadStory.featured_image_url ? (
-                <div className="overflow-hidden border-b border-[#d8d8d8]">
-                  <img
-                    src={leadStory.featured_image_url}
-                    alt={leadStory.title}
-                    className="h-[260px] w-full object-cover sm:h-[340px]"
-                  />
-                </div>
-              ) : null}
-
-              <div className="p-6 sm:p-8">
-                <SectionLabel>{leadStory.category || leadStory.section}</SectionLabel>
-                <h1 className="mt-3 text-4xl font-semibold tracking-tight text-[#2f2f2f] sm:text-5xl">
-                  {leadStory.title}
-                </h1>
-                {leadStory.excerpt ? (
-                  <p className="mt-4 max-w-3xl text-base leading-8 text-[#555]">
-                    {leadStory.excerpt}
-                  </p>
-                ) : null}
-                <div className="mt-6 flex items-center gap-4 text-sm text-slate-500">
-                  <span>{leadStory.reading_time} min read</span>
-                  {leadStory.published_at ? (
-                    <span>{new Date(leadStory.published_at).toLocaleDateString()}</span>
-                  ) : null}
-                </div>
-                <div className="mt-6">
-                  <Link
-                    href={`/stories/${leadStory.slug}`}
-                    className="inline-flex bg-[#2f6e57] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#285f4b]"
-                  >
-                    Read story
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {latestStories.length > 0 ? (
-                latestStories.map((story) => (
-                  <StoryCard key={story.id} story={story} />
-                ))
-              ) : (
-                <div className="border border-[#d8d8d8] bg-[#f7f4ee] p-5">
-                  <SectionLabel>Getting started</SectionLabel>
-                  <h2 className="mt-3 text-2xl font-semibold text-[#2f2f2f]">
-                    Publish your first stories
-                  </h2>
-                  <p className="mt-3 text-sm leading-7 text-[#555]">
-                    Logged-in editors can create stories and publish them to the front page.
-                  </p>
-                  <Link
-                    href="/admin/stories/new"
-                    className="mt-4 inline-flex text-sm font-medium text-[#2f6e57]"
-                  >
-                    Open editor →
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="border border-[#d8d8d8] bg-white p-8">
-            <SectionLabel>Nile Metrica</SectionLabel>
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-[#2f2f2f] sm:text-5xl">
-              South Sudan in one portal
-            </h1>
-            <p className="mt-4 max-w-3xl text-base leading-8 text-[#555]">
-              Publish stories, analysis, opinion, and public reference content from one place.
-            </p>
-            <Link
-              href="/admin/stories/new"
-              className="mt-6 inline-flex bg-[#2f6e57] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#285f4b]"
-            >
-              Create first story
-            </Link>
-          </div>
-        )}
-      </section>
-
-      <section className="border-b border-[#dcdcdc] py-10">
-        <div className="flex flex-wrap gap-3">
-          {fallbackLinks.map((link) => (
-            <Link
-              key={link.title}
-              href={link.href}
-              className="border border-[#d2d2d2] bg-white px-4 py-2 text-sm font-medium text-[#444] transition hover:bg-[#f2f8f5] hover:text-[#2f6e57]"
-            >
-              {link.title}
-            </Link>
-          ))}
-        </div>
-      </section>
-
       <section className="border-b border-[#dcdcdc] py-10">
         <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
           <div>
