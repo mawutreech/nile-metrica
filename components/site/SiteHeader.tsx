@@ -27,24 +27,30 @@ const navGroups: NavGroup[] = [
   },
   {
     label: "States & Territories",
-    href: "/states",
+    href: "/census",
     regions: [
       {
         label: "Greater Bahr el Ghazal",
         items: [
           {
             label: "Abyei Administrative Area",
-            href: "/states/abyei-administrative-area",
+            href: "/census/abyei-administrative-area",
           },
-          { label: "Lakes", href: "/states/lakes" },
+          {
+            label: "Lakes",
+            href: "/census/lakes",
+          },
           {
             label: "Northern Bahr el Ghazal",
-            href: "/states/northern-bahr-el-ghazal",
+            href: "/census/northern-bahr-el-ghazal",
           },
-          { label: "Warrap", href: "/states/warrap" },
+          {
+            label: "Warrap",
+            href: "/census/warrap",
+          },
           {
             label: "Western Bahr el Ghazal",
-            href: "/states/western-bahr-el-ghazal",
+            href: "/census/western-bahr-el-ghazal",
           },
         ],
       },
@@ -53,31 +59,40 @@ const navGroups: NavGroup[] = [
         items: [
           {
             label: "Central Equatoria",
-            href: "/states/central-equatoria",
+            href: "/census/central-equatoria",
           },
           {
             label: "Eastern Equatoria",
-            href: "/states/eastern-equatoria",
+            href: "/census/eastern-equatoria",
           },
           {
             label: "Western Equatoria",
-            href: "/states/western-equatoria",
+            href: "/census/western-equatoria",
           },
         ],
       },
       {
         label: "Greater Upper Nile",
         items: [
-          { label: "Jonglei", href: "/states/jonglei" },
-          { label: "Unity", href: "/states/unity" },
-          { label: "Upper Nile", href: "/states/upper-nile" },
+          {
+            label: "Jonglei",
+            href: "/census/jonglei",
+          },
+          {
+            label: "Unity",
+            href: "/census/unity",
+          },
+          {
+            label: "Upper Nile",
+            href: "/census/upper-nile",
+          },
           {
             label: "Greater Pibor Administrative Area",
-            href: "/states/greater-pibor-administrative-area",
+            href: "/census/greater-pibor-administrative-area",
           },
           {
             label: "Ruweng Administrative Area",
-            href: "/states/ruweng-administrative-area",
+            href: "/census/ruweng-administrative-area",
           },
         ],
       },
