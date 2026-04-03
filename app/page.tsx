@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: "South Sudan Knowledge Portal",
+  title: "Nile Metrica",
   description:
     "Follow South Sudan through news, analysis, opinion, publications, and structured public information in one place.",
   alternates: {

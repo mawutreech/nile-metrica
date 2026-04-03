@@ -1,28 +1,29 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const footerGroups = [
   {
     heading: "Navigation",
     links: [
       { label: "Home", href: "/" },
-      { label: "States & Territories", href: "/states" },
-      { label: "Business", href: "/economy" },
+      { label: "States & Territories", href: "/census" },
+      { label: "Business", href: "/business" },
       { label: "Opinion", href: "/opinion" },
     ],
   },
   {
     heading: "Public Sections",
     links: [
-      { label: "Sports", href: "/culture-sport" },
-      { label: "Health", href: "/society" },
-      { label: "Education", href: "/society" },
+      { label: "Sports", href: "/sports" },
+      { label: "Health", href: "/health" },
+      { label: "Education", href: "/education" },
       { label: "Environment", href: "/environment" },
     ],
   },
   {
     heading: "Evidence",
     links: [
-      { label: "Data & Statistics", href: "/statistics" },
+      { label: "Data & Statistics", href: "/data" },
       { label: "Data", href: "/data" },
       { label: "Indicators", href: "/indicators" },
       { label: "Methodology", href: "/methodology" },
@@ -39,22 +40,39 @@ const footerGroups = [
   },
 ];
 
+const socialLinks = [
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/profile.php?id=61576507383518",
+  },
+  {
+    label: "X",
+    href: "https://x.com/nilemetrica",
+  },
+];
+
 export function SiteFooter() {
   return (
     <footer className="mt-16 border-t border-[#dcdcdc] bg-[#f7f7f5]">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         <div className="grid gap-10 lg:grid-cols-[1.15fr_2fr]">
           <div>
-            <Link href="/" className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#3f7f68] text-sm font-bold text-white">
-                NK
+            <Link href="/" className="inline-flex items-center gap-3">
+              <div className="relative h-10 w-10 overflow-hidden rounded-full border border-[#d7d7d7] bg-white shadow-sm">
+                <Image
+                  src="/nile-metrica-logo-replacement.jpg"
+                  alt="Nile Metrica logo"
+                  fill
+                  className="object-cover"
+                />
               </div>
+
               <div>
-                <p className="text-[30px] font-light leading-none tracking-tight text-[#3f7f68]">
+                <p className="text-[24px] font-light leading-none tracking-tight text-[#3f7f6f]">
                   Nile <span className="text-[#5f5aa2]">Metrica</span>
                 </p>
-                <p className="mt-1 text-[10px] uppercase tracking-[0.24em] text-slate-500">
-                  South Sudan Knowledge Portal
+                <p className="mt-1.5 text-[9px] uppercase tracking-[0.22em] text-[#6c7690]">
+                  Calibrating the Nile Valley
                 </p>
               </div>
             </Link>
@@ -64,12 +82,43 @@ export function SiteFooter() {
               bringing together stories, analysis, public information, and
               structured reference content in one place.
             </p>
+
+            <div className="mt-6 flex items-center gap-3">
+              {socialLinks.map((social) => (
+                <Link
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={social.label}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[#d7d7d7] bg-white text-[#444] transition hover:border-[#2f6e57] hover:text-[#2f6e57]"
+                >
+                  {social.label === "Facebook" ? (
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      className="h-5 w-5 fill-current"
+                    >
+                      <path d="M13.5 22v-8.2h2.8l.4-3.2h-3.2V8.5c0-.9.3-1.6 1.6-1.6h1.7V4.1c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.4-4 4.2v2.4H7.5v3.2h2.8V22h3.2Z" />
+                    </svg>
+                  ) : (
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      className="h-5 w-5 fill-current"
+                    >
+                      <path d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3l-4.9-7.4L5.6 22H2.5l7.3-8.3L1 2h6.5l4.4 6.8L18.9 2Zm-1.1 18h1.8L6.6 3.9H4.7L17.8 20Z" />
+                    </svg>
+                  )}
+                </Link>
+              ))}
+            </div>
           </div>
 
           <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
             {footerGroups.map((group) => (
               <div key={group.heading}>
-                <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3f7f68]">
+                <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#5a6478]">
                   {group.heading}
                 </h2>
                 <ul className="mt-4 space-y-3">

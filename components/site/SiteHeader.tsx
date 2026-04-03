@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -100,68 +101,31 @@ const navGroups: NavGroup[] = [
   },
   {
     label: "Business",
-    href: "/economy",
-    items: [
-      { label: "Economy", href: "/economy" },
-      { label: "Trade", href: "/economy" },
-      { label: "Agriculture", href: "/economy" },
-      { label: "Markets", href: "/economy" },
-      { label: "Publications", href: "/publications" },
-    ],
+    href: "/business",
   },
   {
     label: "Opinion",
     href: "/opinion",
-    items: [
-      { label: "Opinion", href: "/opinion" },
-      { label: "Analysis", href: "/opinion" },
-      { label: "Commentary", href: "/opinion" },
-    ],
   },
   {
     label: "Sports",
-    href: "/culture-sport",
-    items: [
-      { label: "Sports", href: "/culture-sport" },
-      { label: "Culture & Sport", href: "/culture-sport" },
-    ],
+    href: "/sports",
   },
   {
     label: "Health",
-    href: "/society",
-    items: [
-      { label: "Health", href: "/society" },
-      { label: "Public Health", href: "/society" },
-      { label: "Social Services", href: "/society" },
-    ],
+    href: "/health",
   },
   {
     label: "Education",
-    href: "/society",
-    items: [
-      { label: "Education", href: "/society" },
-      { label: "Schools", href: "/society" },
-      { label: "Human Development", href: "/society" },
-    ],
+    href: "/education",
   },
   {
     label: "Environment",
     href: "/environment",
-    items: [
-      { label: "Environment", href: "/environment" },
-      { label: "Climate", href: "/environment" },
-      { label: "Land & Resources", href: "/environment" },
-    ],
   },
   {
     label: "Data & Statistics",
-    href: "/statistics",
-    items: [
-      { label: "Statistics", href: "/statistics" },
-      { label: "Data", href: "/data" },
-      { label: "Indicators", href: "/indicators" },
-      { label: "Methodology", href: "/methodology" },
-    ],
+    href: "/data",
   },
   {
     label: "Contact",
@@ -175,7 +139,9 @@ function formatToday() {
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(new Date());
+  })
+    .format(new Date())
+    .toUpperCase();
 }
 
 function DesktopDropdown({
@@ -194,6 +160,7 @@ function DesktopDropdown({
       setMounted(true);
       return;
     }
+
     const timer = setTimeout(() => setMounted(false), 180);
     return () => clearTimeout(timer);
   }, [open]);
@@ -208,7 +175,7 @@ function DesktopDropdown({
       <div
         className={[
           "absolute left-1/2 top-full z-50 mt-3 -translate-x-1/2 overflow-hidden border border-[#d9d9d9] bg-white shadow-lg transition-all duration-200",
-          hasRegions ? "min-w-[520px]" : "min-w-[260px]",
+          hasRegions ? "min-w-[560px]" : "min-w-[240px]",
           open
             ? "translate-y-0 opacity-100"
             : "-translate-y-1 pointer-events-none opacity-0",
@@ -253,6 +220,46 @@ function DesktopDropdown({
         )}
       </div>
     </>
+  );
+}
+
+function BrandMark({
+  mobile = false,
+}: {
+  mobile?: boolean;
+}) {
+  return (
+    <Link href="/" className="inline-flex items-center gap-3">
+      <div className="relative h-14 w-14 overflow-hidden rounded-full border border-[#d7d7d7] bg-white shadow-sm sm:h-16 sm:w-16">
+        <Image
+          src="/nile-metrica-logo-replacement.jpg"
+          alt="Nile Metrica logo"
+          fill
+          priority
+          className="object-cover"
+        />
+      </div>
+
+      <div className="leading-none">
+        <div
+          className={[
+            "font-light tracking-tight",
+            mobile ? "text-[40px]" : "text-[46px] lg:text-[56px]",
+          ].join(" ")}
+        >
+          <span className="text-[#4d816e]">Nile </span>
+          <span className="text-[#5b4fa0]">Metrica</span>
+        </div>
+        <div
+          className={[
+            "mt-2 uppercase tracking-[0.26em] text-[#6c7690]",
+            mobile ? "text-[10px]" : "text-[11px] lg:text-[12px]",
+          ].join(" ")}
+        >
+          Calibrating the Nile Valley
+        </div>
+      </div>
+    </Link>
   );
 }
 
@@ -306,15 +313,8 @@ export default function SiteHeader() {
               </button>
             </div>
 
-            <div className="hidden text-center md:block">
-              <Link href="/" className="inline-block">
-                <div className="text-[40px] font-light leading-none tracking-tight text-[#3f7f68]">
-                  Nile <span className="text-[#5f5aa2]">Metrica</span>
-                </div>
-                <div className="mt-1 text-[10px] uppercase tracking-[0.28em] text-[#6b7280]">
-                  South Sudan Knowledge Portal
-                </div>
-              </Link>
+            <div className="hidden justify-center md:flex">
+              <BrandMark />
             </div>
 
             <div className="hidden text-right md:block">
@@ -337,15 +337,8 @@ export default function SiteHeader() {
             </div>
           </div>
 
-          <div className="mt-4 text-center md:hidden">
-            <Link href="/" className="inline-block">
-              <div className="text-[34px] font-light leading-none tracking-tight text-[#3f7f68]">
-                Nile <span className="text-[#5f5aa2]">Metrica</span>
-              </div>
-              <div className="mt-1 text-[10px] uppercase tracking-[0.24em] text-[#6b7280]">
-                South Sudan Knowledge Portal
-              </div>
-            </Link>
+          <div className="mt-4 flex justify-center md:hidden">
+            <BrandMark mobile />
           </div>
 
           <div className="mt-4 flex items-center justify-between md:hidden">

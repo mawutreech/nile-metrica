@@ -5,7 +5,8 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Nile Metrica",
-  description: "South Sudan Knowledge Portal",
+  description:
+    "Nile Metrica is a public-facing South Sudan knowledge portal bringing together stories, analysis, public information, and structured reference content in one place.",
 };
 
 export default function RootLayout({
@@ -15,11 +16,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-white text-slate-900 antialiased">
-        <div className="flex min-h-screen flex-col">
-          <SiteHeader />
-          <main className="flex-1">{children}</main>
-          <SiteFooter />
+      <body>
+        <div className="min-h-screen bg-white text-slate-900 antialiased">
+          <div className="flex min-h-screen flex-col">
+            <SiteHeader />
+            <div className="flex-1">{children}</div>
+            <SiteFooter />
+          </div>
         </div>
       </body>
     </html>
