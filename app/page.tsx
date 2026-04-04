@@ -8,7 +8,7 @@ export const revalidate = 0;
 export const metadata: Metadata = {
   title: "Nile Metrica",
   description:
-    "Follow South Sudan through news, analysis, opinion, publications, and structured public information in one place.",
+    "Follow South Sudan through news, analysis, opinion, publications, and structured public reference.",
   alternates: {
     canonical: "https://nilemetrica.com",
   },
@@ -38,17 +38,20 @@ function StoryCard({ story }: { story: Story }) {
   return (
     <Link
       href={`/stories/${story.slug}`}
-      className="block border border-[#d8d8d8] bg-white p-5 transition hover:bg-[#f8fbf9]"
+      className="block border border-[#d8d8d8] bg-white p-5 transition hover:bg-[#fafafa]"
     >
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#3f7f68]">
         {story.category || story.section}
       </p>
+
       <h3 className="mt-3 text-2xl font-semibold leading-tight text-[#2f2f2f]">
         {story.title}
       </h3>
+
       {story.excerpt ? (
         <p className="mt-3 text-sm leading-7 text-[#555]">{story.excerpt}</p>
       ) : null}
+
       <p className="mt-3 text-sm text-slate-500">{story.reading_time} min read</p>
     </Link>
   );
@@ -63,9 +66,11 @@ function CompactStoryLink({ story }: { story: Story }) {
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#3f7f68]">
         {story.category || story.section}
       </p>
+
       <h3 className="mt-2 text-xl font-semibold leading-tight text-[#2f2f2f]">
         {story.title}
       </h3>
+
       <p className="mt-2 text-sm text-slate-500">{story.reading_time} min read</p>
     </Link>
   );
@@ -172,7 +177,7 @@ export default async function HomePage() {
               Reports, bulletins, and reference pieces
             </h2>
 
-            <div className="mt-6 space-y-4">
+            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {publicationStories.length > 0 ? (
                 publicationStories.map((story) => (
                   <StoryCard key={story.id} story={story} />
