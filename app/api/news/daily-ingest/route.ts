@@ -88,7 +88,7 @@ async function fetchNewsForTopic(topic: string, from: string) {
   }
 
   const params = new URLSearchParams({
-    q: `"South Sudan" AND ${topic}`,
+    q: `South Sudan ${topic}`,
     language: "en",
     sortBy: "publishedAt",
     pageSize: "15",
@@ -211,18 +211,28 @@ export async function POST(req: NextRequest) {
   const jobId = jobInsert.data?.id;
 
   try {
+    let createdCount = 0;
+    let fetchedBeforeFilter = 0;
     let candidates: CandidateWithTopic[] = [];
 
     for (const topic of topicBuckets) {
       const articles = await fetchNewsForTopic(topic, from);
+      console.log(`topic=${topic}, fetched=${articles.length}`);
+      fetchedBeforeFilter += articles.length;
       candidates.push(...articles.map((article) => ({ ...article, topic })));
     }
+
+    console.log("total fetched before dedupe:", candidates.length);
 
     candidates = dedupeByUrl(candidates)
       .filter((article) => article.title && article.url && article.source?.name)
       .slice(0, 40);
 
+    console.log("after dedupe/filter:", candidates.length);
+
     const picked = candidates.slice(0, 5);
+
+    console.log("picked for generation:", picked.length);
 
     for (const article of picked) {
       const draft = await generateEditorialDraft(openai, article, article.topic);
@@ -258,8 +268,12 @@ export async function POST(req: NextRequest) {
         .select("id, title")
         .single();
 
+      console.log("story insert result:", storyInsert.data, storyInsert.error);
+
       const storyId = storyInsert.data?.id;
       if (!storyId) continue;
+
+      createdCount += 1;
 
       await supabase.from("story_sources").insert({
         story_id: storyId,
@@ -293,6 +307,7 @@ export async function POST(req: NextRequest) {
         .from("news_jobs")
         .update({
           status: "completed",
+          notes: `fetched=${fetchedBeforeFilter}, usable=${candidates.length}, selected=${picked.length}, created=${createdCount}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", jobId);
@@ -300,7 +315,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      created: picked.length,
+      fetched: fetchedBeforeFilter,
+      usable: candidates.length,
+      selected: picked.length,
+      created: createdCount,
     });
   } catch (error) {
     if (jobId) {
