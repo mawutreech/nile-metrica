@@ -4,19 +4,6 @@ import OpenAI from "openai";
 
 export const dynamic = "force-dynamic";
 
-const SECTION_MAP = {
-  politics: "news",
-  diplomacy: "news",
-  security: "news",
-  economy: "business-tech",
-  oil: "business-tech",
-  technology: "business-tech",
-  health: "data-stats",
-  education: "data-stats",
-  humanitarian: "data-stats",
-  regions: "states-territories",
-} as const;
-
 type StorySection =
   | "news"
   | "business-tech"
@@ -33,10 +20,6 @@ type CandidateArticle = {
   source?: { name?: string | null };
   author?: string | null;
   content?: string | null;
-};
-
-type CandidateWithTopic = CandidateArticle & {
-  topic: string;
 };
 
 type GeneratedDraft = {
@@ -81,44 +64,28 @@ function labelForRunDate(date: Date) {
   });
 }
 
-function buildQuery(topic: string) {
-  const base = [
-    `"South Sudan"`,
-    `"Juba"`,
-    `"South Sudan government"`,
-    `"South Sudan economy"`,
-    `"South Sudan conflict"`,
-  ];
-
-  const topicMap: Record<string, string[]> = {
-    politics: ["politics", `"government"`, "parliament", "president"],
-    economy: ["economy", "inflation", "market", "trade", "business"],
-    security: ["security", "conflict", "violence", "peace"],
-    health: ["health", "hospital", "disease", "cholera"],
-    education: ["education", "school", "university", "students"],
-    oil: ["oil", "petroleum", "energy", "pipeline"],
-    diplomacy: ["diplomacy", "embassy", "bilateral", "regional"],
-    infrastructure: ["infrastructure", "roads", "transport", "electricity"],
-    agriculture: ["agriculture", "farming", "food", "harvest"],
-    sport: ["sport", "football", "basketball", "tournament"],
-  };
-
-  const topicTerms = topicMap[topic] ?? [topic];
-
-  return `${base.join(" OR ")} AND (${topicTerms.join(" OR ")})`;
-}
-
-async function fetchNewsForTopic(topic: string, from: string) {
+async function fetchSouthSudanNews(from: string) {
   const apiKey = process.env.NEWS_API_KEY;
   if (!apiKey) {
     throw new Error("Missing NEWS_API_KEY");
   }
 
+  const query = [
+    `"South Sudan"`,
+    `"Juba"`,
+    `"South Sudan government"`,
+    `"South Sudan economy"`,
+    `"South Sudan conflict"`,
+    `"South Sudan oil"`,
+    `"South Sudan education"`,
+    `"South Sudan health"`,
+  ].join(" OR ");
+
   const params = new URLSearchParams({
-    q: buildQuery(topic),
+    q: query,
     language: "en",
     sortBy: "publishedAt",
-    pageSize: "20",
+    pageSize: "50",
     from,
     searchIn: "title,description,content",
     apiKey,
@@ -134,7 +101,7 @@ async function fetchNewsForTopic(topic: string, from: string) {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`News fetch failed for ${topic}: ${response.status} ${text}`);
+    throw new Error(`News fetch failed: ${response.status} ${text}`);
   }
 
   const json = await response.json();
@@ -143,8 +110,7 @@ async function fetchNewsForTopic(topic: string, from: string) {
 
 async function generateEditorialDraft(
   openai: OpenAI,
-  article: CandidateArticle,
-  topic: string
+  article: CandidateArticle
 ) {
   const prompt = `
 You are an editor for Nile Metrica, a South Sudan knowledge portal.
@@ -173,8 +139,6 @@ Rules:
 - category should be a short label
 - summary should be 3 short paragraphs max
 - no markdown
-
-Topic hint: ${topic}
 
 Source title: ${article.title}
 Source description: ${article.description ?? ""}
@@ -213,20 +177,7 @@ export async function POST(req: NextRequest) {
   const openai = new OpenAI({ apiKey: openaiApiKey });
 
   const today = new Date();
-  const from = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-  const topicBuckets = [
-    "politics",
-    "economy",
-    "security",
-    "health",
-    "education",
-    "oil",
-    "diplomacy",
-    "infrastructure",
-    "agriculture",
-    "sport",
-  ];
+  const from = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
 
   const jobInsert = await supabase
     .from("news_jobs")
@@ -241,17 +192,11 @@ export async function POST(req: NextRequest) {
 
   try {
     let createdCount = 0;
-    let fetchedBeforeFilter = 0;
-    let candidates: CandidateWithTopic[] = [];
 
-    for (const topic of topicBuckets) {
-      const articles = await fetchNewsForTopic(topic, from);
-      console.log(`topic=${topic}, fetched=${articles.length}`);
-      fetchedBeforeFilter += articles.length;
-      candidates.push(...articles.map((article) => ({ ...article, topic })));
-    }
+    const fetchedArticles = await fetchSouthSudanNews(from);
+    console.log("fetched before dedupe:", fetchedArticles.length);
 
-    candidates = dedupeByUrl(candidates)
+    const candidates = dedupeByUrl(fetchedArticles)
       .filter(
         (article) =>
           article.title &&
@@ -259,21 +204,17 @@ export async function POST(req: NextRequest) {
           article.source?.name &&
           !article.title.toLowerCase().includes("[removed]")
       )
-      .slice(0, 40);
+      .slice(0, 10);
+
+    console.log("usable after filter:", candidates.length);
 
     const picked = candidates.slice(0, 5);
+    console.log("picked:", picked.length);
 
     for (const article of picked) {
-      const draft = await generateEditorialDraft(openai, article, article.topic);
+      const draft = await generateEditorialDraft(openai, article);
 
-      const fallbackSection =
-        SECTION_MAP[
-          (article.topic in SECTION_MAP
-            ? article.topic
-            : "politics") as keyof typeof SECTION_MAP
-        ] ?? "news";
-
-      const section: StorySection = draft.section ?? fallbackSection;
+      const section: StorySection = draft.section ?? "news";
 
       const slugBase = (draft.headline ?? article.title)
         .toLowerCase()
@@ -345,7 +286,7 @@ export async function POST(req: NextRequest) {
         .from("news_jobs")
         .update({
           status: "completed",
-          notes: `fetched=${fetchedBeforeFilter}, usable=${candidates.length}, selected=${picked.length}, created=${createdCount}`,
+          notes: `fetched=${fetchedArticles.length}, usable=${candidates.length}, selected=${picked.length}, created=${createdCount}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", jobId);
@@ -353,7 +294,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      fetched: fetchedBeforeFilter,
+      fetched: fetchedArticles.length,
       usable: candidates.length,
       selected: picked.length,
       created: createdCount,
