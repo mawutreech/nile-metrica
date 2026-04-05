@@ -17,6 +17,13 @@ const SECTION_MAP = {
   regions: "states-territories",
 } as const;
 
+type StorySection =
+  | "news"
+  | "business-tech"
+  | "opinion"
+  | "data-stats"
+  | "states-territories";
+
 type CandidateArticle = {
   title: string;
   description?: string | null;
@@ -28,15 +35,37 @@ type CandidateArticle = {
   content?: string | null;
 };
 
+type CandidateWithTopic = CandidateArticle & {
+  topic: string;
+};
+
+type GeneratedDraft = {
+  headline?: string;
+  excerpt?: string;
+  summary?: string;
+  why_it_matters?: string;
+  section?: StorySection;
+  category?: string;
+  reading_time?: number;
+  x_post?: string;
+  facebook_post?: string;
+  confidence?: number;
+};
+
 function getSupabaseAdmin() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Missing Supabase admin environment variables");
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey);
 }
 
-function dedupeByUrl(articles: CandidateArticle[]) {
+function dedupeByUrl<T extends { url: string }>(articles: T[]): T[] {
   const seen = new Set<string>();
+
   return articles.filter((article) => {
     if (!article.url || seen.has(article.url)) return false;
     seen.add(article.url);
@@ -49,19 +78,27 @@ function weekdayName(date: Date) {
 }
 
 async function fetchNewsForTopic(topic: string, from: string) {
+  const apiKey = process.env.NEWS_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing NEWS_API_KEY");
+  }
+
   const params = new URLSearchParams({
     q: `"South Sudan" AND ${topic}`,
     language: "en",
     sortBy: "publishedAt",
     pageSize: "15",
     from,
-    apiKey: process.env.NEWS_API_KEY!,
+    apiKey,
   });
 
-  const response = await fetch(`https://newsapi.org/v2/everything?${params.toString()}`, {
-    headers: { Accept: "application/json" },
-    cache: "no-store",
-  });
+  const response = await fetch(
+    `https://newsapi.org/v2/everything?${params.toString()}`,
+    {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    }
+  );
 
   if (!response.ok) {
     throw new Error(`News fetch failed for ${topic}: ${response.status}`);
@@ -71,7 +108,11 @@ async function fetchNewsForTopic(topic: string, from: string) {
   return (json.articles ?? []) as CandidateArticle[];
 }
 
-async function generateEditorialDraft(openai: OpenAI, article: CandidateArticle, topic: string) {
+async function generateEditorialDraft(
+  openai: OpenAI,
+  article: CandidateArticle,
+  topic: string
+) {
   const prompt = `
 You are an editor for Nile Metrica, a South Sudan knowledge portal.
 
@@ -116,7 +157,9 @@ Source content: ${article.content ?? ""}
     messages: [{ role: "user", content: prompt }],
   });
 
-  return JSON.parse(completion.choices[0]?.message?.content ?? "{}");
+  return JSON.parse(
+    completion.choices[0]?.message?.content ?? "{}"
+  ) as GeneratedDraft;
 }
 
 export async function POST(req: NextRequest) {
@@ -125,11 +168,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const openaiApiKey = process.env.OPENAI_API_KEY;
+  if (!openaiApiKey) {
+    return NextResponse.json(
+      { error: "Missing OPENAI_API_KEY" },
+      { status: 500 }
+    );
+  }
+
   const supabase = getSupabaseAdmin();
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = new OpenAI({ apiKey: openaiApiKey });
 
   const today = new Date();
   const day = today.getDay();
+
   if (day === 0 || day === 6) {
     return NextResponse.json({ ok: true, skipped: "Weekend" });
   }
@@ -151,22 +203,25 @@ export async function POST(req: NextRequest) {
 
   const jobInsert = await supabase
     .from("news_jobs")
-    .insert({ run_date: today.toISOString().slice(0, 10), status: "running" })
+    .insert({
+      run_date: today.toISOString().slice(0, 10),
+      status: "running",
+    })
     .select("id")
     .single();
 
   const jobId = jobInsert.data?.id;
 
   try {
-    let candidates: Array<CandidateArticle & { topic: string }> = [];
+    let candidates: CandidateWithTopic[] = [];
 
     for (const topic of topicBuckets) {
       const articles = await fetchNewsForTopic(topic, from);
-      candidates.push(...articles.map((a) => ({ ...a, topic })));
+      candidates.push(...articles.map((article) => ({ ...article, topic })));
     }
 
     candidates = dedupeByUrl(candidates)
-      .filter((a) => a.title && a.url && a.source?.name)
+      .filter((article) => article.title && article.url && article.source?.name)
       .slice(0, 40);
 
     const picked = candidates.slice(0, 5);
@@ -174,12 +229,14 @@ export async function POST(req: NextRequest) {
     for (const article of picked) {
       const draft = await generateEditorialDraft(openai, article, article.topic);
 
-      const section =
-        draft.section ||
+      const fallbackSection =
         SECTION_MAP[
-          (article.topic in SECTION_MAP ? article.topic : "politics") as keyof typeof SECTION_MAP
-        ] ||
-        "news";
+          (article.topic in SECTION_MAP
+            ? article.topic
+            : "politics") as keyof typeof SECTION_MAP
+        ] ?? "news";
+
+      const section: StorySection = draft.section ?? fallbackSection;
 
       const storyInsert = await supabase
         .from("stories")
@@ -233,24 +290,31 @@ export async function POST(req: NextRequest) {
       ]);
     }
 
-    await supabase
-      .from("news_jobs")
-      .update({ status: "completed", updated_at: new Date().toISOString() })
-      .eq("id", jobId);
+    if (jobId) {
+      await supabase
+        .from("news_jobs")
+        .update({
+          status: "completed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", jobId);
+    }
 
     return NextResponse.json({
       ok: true,
       created: picked.length,
     });
   } catch (error) {
-    await supabase
-      .from("news_jobs")
-      .update({
-        status: "failed",
-        notes: error instanceof Error ? error.message : "Unknown error",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", jobId);
+    if (jobId) {
+      await supabase
+        .from("news_jobs")
+        .update({
+          status: "failed",
+          notes: error instanceof Error ? error.message : "Unknown error",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", jobId);
+    }
 
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
