@@ -8,7 +8,7 @@ export const revalidate = 0;
 export const metadata: Metadata = {
   title: "Nile Metrica",
   description:
-    "Follow South Sudan through news, analysis, opinion, publications, and structured public reference.",
+    "Follow South Sudan through news, analysis, opinion, publications, and structured public information in one place.",
   alternates: {
     canonical: "https://nilemetrica.com",
   },
@@ -38,20 +38,17 @@ function StoryCard({ story }: { story: Story }) {
   return (
     <Link
       href={`/stories/${story.slug}`}
-      className="block border border-[#d8d8d8] bg-white p-5 transition hover:bg-[#fafafa]"
+      className="block border border-[#d8d8d8] bg-white p-5 transition hover:bg-[#f8fbf9]"
     >
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#3f7f68]">
         {story.category || story.section}
       </p>
-
       <h3 className="mt-3 text-2xl font-semibold leading-tight text-[#2f2f2f]">
         {story.title}
       </h3>
-
       {story.excerpt ? (
         <p className="mt-3 text-sm leading-7 text-[#555]">{story.excerpt}</p>
       ) : null}
-
       <p className="mt-3 text-sm text-slate-500">{story.reading_time} min read</p>
     </Link>
   );
@@ -66,11 +63,9 @@ function CompactStoryLink({ story }: { story: Story }) {
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#3f7f68]">
         {story.category || story.section}
       </p>
-
       <h3 className="mt-2 text-xl font-semibold leading-tight text-[#2f2f2f]">
         {story.title}
       </h3>
-
       <p className="mt-2 text-sm text-slate-500">{story.reading_time} min read</p>
     </Link>
   );
@@ -119,22 +114,24 @@ export default async function HomePage() {
 
   const stories: Story[] = data ?? [];
 
-  const newsStories = stories.filter((s) => s.section === "news").slice(0, 3);
+  const southSudanStories = stories
+    .filter((s) => s.section === "south-sudan")
+    .slice(0, 3);
 
-  const businessTechStories = stories
-    .filter((s) => s.section === "business-tech")
+  const businessStories = stories
+    .filter((s) => s.section === "business")
+    .slice(0, 3);
+
+  const politicsStories = stories
+    .filter((s) => s.section === "politics")
     .slice(0, 3);
 
   const opinionStories = stories
     .filter((s) => s.section === "opinion")
     .slice(0, 3);
 
-  const dataStatsStories = stories
-    .filter((s) => s.section === "data-stats")
-    .slice(0, 3);
-
-  const statesTerritoriesStories = stories
-    .filter((s) => s.section === "states-territories")
+  const cultureSportStories = stories
+    .filter((s) => s.section === "culture-sport")
     .slice(0, 3);
 
   const publicationStories = stories
@@ -175,7 +172,7 @@ export default async function HomePage() {
               Reports, bulletins, and reference pieces
             </h2>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-6 space-y-4">
               {publicationStories.length > 0 ? (
                 publicationStories.map((story) => (
                   <StoryCard key={story.id} story={story} />
@@ -191,17 +188,24 @@ export default async function HomePage() {
       </section>
 
       <SectionBlock
-        title="News"
-        subtitle="Latest reporting"
-        stories={newsStories}
-        emptyMessage="News stories will appear here once published."
+        title="South Sudan"
+        subtitle="National reference"
+        stories={southSudanStories}
+        emptyMessage="South Sudan stories will appear here once published."
       />
 
       <SectionBlock
-        title="Business & Tech"
-        subtitle="Economy, business, and technology"
-        stories={businessTechStories}
-        emptyMessage="Business & Tech stories will appear here once published."
+        title="Business"
+        subtitle="Economy, markets, and data"
+        stories={businessStories}
+        emptyMessage="Business stories will appear here once published."
+      />
+
+      <SectionBlock
+        title="Politics"
+        subtitle="Public affairs and power"
+        stories={politicsStories}
+        emptyMessage="Politics stories will appear here once published."
       />
 
       <SectionBlock
@@ -212,17 +216,10 @@ export default async function HomePage() {
       />
 
       <SectionBlock
-        title="Data & Stats"
-        subtitle="Data, indicators, and evidence"
-        stories={dataStatsStories}
-        emptyMessage="Data & Stats stories will appear here once published."
-      />
-
-      <SectionBlock
-        title="States & Territories"
-        subtitle="Regional coverage and reference"
-        stories={statesTerritoriesStories}
-        emptyMessage="States & Territories stories will appear here once published."
+        title="Culture & Sport"
+        subtitle="Heritage, arts, and games"
+        stories={cultureSportStories}
+        emptyMessage="Culture & Sport stories will appear here once published."
       />
     </main>
   );

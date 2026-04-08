@@ -1,51 +1,38 @@
 import Link from "next/link";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import DeleteStoryButton from "@/components/admin/DeleteStoryButton";
 
-function formatSection(section: string | null) {
-  switch (section) {
-    case "news":
-      return "News";
-    case "business-tech":
-      return "Business & Tech";
-    case "opinion":
-      return "Opinion";
-    case "data-stats":
-      return "Data & Stats";
-    case "states-territories":
-      return "States & Territories";
-    default:
-      return section ?? "—";
+export const dynamic = "force-dynamic";
+
+type StoryRow = {
+  id: string;
+  title: string;
+  slug: string | null;
+  section: string | null;
+  status: string | null;
+  updated_at: string | null;
+  created_at: string | null;
+};
+
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Missing Supabase admin environment variables");
   }
-}
 
-function formatStatus(status: string | null) {
-  if (!status) return "—";
-  return status.charAt(0).toUpperCase() + status.slice(1);
-}
-
-function formatDate(value: string | null) {
-  if (!value) return "—";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-
-  return date.toLocaleString("en-AU", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return createClient(supabaseUrl, serviceRoleKey);
 }
 
 export default async function AdminStoriesPage() {
-  const supabase = createSupabaseServerClient();
+  const supabase = getSupabaseAdmin();
 
   const { data: stories, error } = await supabase
     .from("stories")
     .select("id, title, slug, section, status, updated_at, created_at")
-    .order("updated_at", { ascending: false });
+    .order("updated_at", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false, nullsFirst: false });
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-12">
@@ -59,7 +46,7 @@ export default async function AdminStoriesPage() {
 
         <Link
           href="/admin/stories/new"
-          className="bg-emerald-700 px-5 py-3 font-medium text-white transition hover:bg-emerald-800"
+          className="bg-emerald-700 px-5 py-3 font-medium text-white hover:bg-emerald-800"
         >
           New story
         </Link>
@@ -95,27 +82,26 @@ export default async function AdminStoriesPage() {
                 </td>
               </tr>
             ) : stories && stories.length > 0 ? (
-              stories.map((story) => (
+              stories.map((story: StoryRow) => (
                 <tr key={story.id} className="border-b last:border-b-0">
                   <td className="px-4 py-4 text-sm text-slate-800">
-                    <div className="font-medium">{story.title}</div>
-                    <div className="mt-1 text-xs text-slate-500">
-                      /stories/{story.slug}
-                    </div>
+                    {story.title}
                   </td>
 
                   <td className="px-4 py-4 text-sm text-slate-600">
-                    {formatSection(story.section)}
+                    {story.section ?? "—"}
                   </td>
 
                   <td className="px-4 py-4 text-sm text-slate-600">
-                    {formatStatus(story.status)}
+                    {story.status ?? "—"}
                   </td>
 
                   <td className="px-4 py-4 text-sm text-slate-600">
                     {story.updated_at
-                      ? formatDate(story.updated_at)
-                      : formatDate(story.created_at)}
+                      ? new Date(story.updated_at).toLocaleString()
+                      : story.created_at
+                        ? new Date(story.created_at).toLocaleString()
+                        : "—"}
                   </td>
 
                   <td className="px-4 py-4 text-sm">
@@ -127,12 +113,14 @@ export default async function AdminStoriesPage() {
                         Edit
                       </Link>
 
-                      <Link
-                        href={`/stories/${story.slug}`}
-                        className="text-slate-700 hover:underline"
-                      >
-                        View
-                      </Link>
+                      {story.slug ? (
+                        <Link
+                          href={`/stories/${story.slug}`}
+                          className="text-slate-700 hover:underline"
+                        >
+                          View
+                        </Link>
+                      ) : null}
 
                       <DeleteStoryButton
                         storyId={story.id}
