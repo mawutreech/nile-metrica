@@ -1,18 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { Metadata } from "next";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export const metadata: Metadata = {
-  title: "Nile Metrica",
-  description:
-    "Follow South Sudan through news, analysis, opinion, publications, and structured reference.",
-  alternates: {
-    canonical: "https://nilemetrica.com",
-  },
+type StoryAuthor = {
+  id: string;
+  display_name: string | null;
+  full_name: string | null;
+  role: string | null;
+  avatar_url: string | null;
 };
 
 type Story = {
@@ -24,124 +22,299 @@ type Story = {
   section: string;
   category: string | null;
   published_at: string | null;
-  reading_time: number;
+  reading_time: number | null;
+  author_id: string | null;
+  author: StoryAuthor[] | null;
 };
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="inline-block bg-[#d7ecec] px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#426060]">
-      {children}
-    </p>
-  );
+function formatDate(dateString: string | null) {
+  if (!dateString) return "";
+  return new Date(dateString).toLocaleDateString("en-AU", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
-function formatSectionName(section: string, category: string | null) {
-  if (category && category.trim().length > 0) {
-    return category;
-  }
+function labelForStory(story: Pick<Story, "section" | "category">) {
+  if (story.category?.trim()) return story.category;
 
-  switch (section) {
+  switch (story.section) {
     case "south-sudan":
       return "News";
-    case "business":
-      return "Business";
     case "politics":
       return "Politics";
+    case "business":
+      return "Business & Tech";
     case "opinion":
       return "Opinion";
+    case "health":
+      return "Health";
+    case "education":
+      return "Education";
+    case "environment":
+      return "Environment";
+    case "states-territories":
+      return "States & Territories";
+    case "data-statistics":
+      return "Data & Statistics";
     case "culture-sport":
       return "Culture & Sport";
     default:
-      return section.replace(/-/g, " ");
+      return "Story";
   }
 }
 
 function StoryCard({ story }: { story: Story }) {
-  const label = formatSectionName(story.section, story.category);
+  const linkedAuthor = story.author?.[0] ?? null;
+  const authorName =
+    linkedAuthor?.display_name || linkedAuthor?.full_name || "Editor";
+  const authorRole = linkedAuthor?.role || "Contributor at Nile Metrica";
+  const authorAvatar = linkedAuthor?.avatar_url || null;
+
+  const showAuthorFallback =
+    story.section === "opinion" && !story.featured_image_url;
 
   return (
-    <article className="border border-[#d8d8d8] bg-white">
-      <Link href={`/stories/${story.slug}`} className="block">
-        <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#f3f3f3]">
-          {story.featured_image_url ? (
+    <article className="overflow-hidden border border-[#d8d8d8] bg-white">
+      {story.featured_image_url ? (
+        <Link href={`/stories/${story.slug}`} className="block">
+          <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#f2f2f2]">
             <Image
               src={story.featured_image_url}
               alt={story.title}
               fill
               className="object-cover transition duration-300 hover:scale-[1.02]"
-              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
               unoptimized
             />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-sm text-slate-500">
-              No image available
+          </div>
+        </Link>
+      ) : showAuthorFallback ? (
+        <div className="flex min-h-[240px] items-center bg-[#eef3f6] p-6">
+          <div className="flex items-center gap-4">
+            {authorAvatar ? (
+              <img
+                src={authorAvatar}
+                alt={authorName}
+                className="h-16 w-16 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#d7dfe5] text-2xl font-semibold text-[#223]">
+                {authorName.charAt(0).toUpperCase()}
+              </div>
+            )}
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#3f5a5a]">
+                By {authorName}
+              </p>
+              <p className="mt-1 text-sm text-slate-600">{authorRole}</p>
+              {(story.published_at || story.reading_time) && (
+                <p className="mt-2 text-xs text-slate-500">
+                  {story.published_at ? formatDate(story.published_at) : ""}
+                  {story.published_at && story.reading_time ? " · " : ""}
+                  {story.reading_time ? `${story.reading_time} min read` : ""}
+                </p>
+              )}
             </div>
-          )}
+          </div>
         </div>
-      </Link>
+      ) : (
+        <div className="flex min-h-[240px] items-center justify-center bg-[#f3f3f3] text-sm text-slate-500">
+          No image available
+        </div>
+      )}
 
-      <div className="p-5">
-        <SectionLabel>{label}</SectionLabel>
+      <div className="p-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#3f7f68]">
+          {labelForStory(story)}
+        </p>
 
-        <h3 className="mt-4 text-[2.1rem] font-semibold leading-[1.02] tracking-[-0.02em] text-[#2f2f2f]">
+        <h2 className="mt-3 text-2xl font-semibold leading-tight text-[#2f2f2f]">
           <Link href={`/stories/${story.slug}`} className="hover:underline">
             {story.title}
           </Link>
-        </h3>
+        </h2>
 
         {story.excerpt ? (
-          <p className="mt-4 text-[1.05rem] leading-8 text-[#555]">{story.excerpt}</p>
+          <p className="mt-3 text-sm leading-7 text-[#555]">{story.excerpt}</p>
         ) : null}
 
-        <div className="mt-5 flex items-center gap-4 text-sm text-slate-500">
-          <span>{story.reading_time} min read</span>
-          <Link
-            href={`/stories/${story.slug}`}
-            className="font-semibold uppercase tracking-[0.14em] text-[#2f6e57] hover:underline"
-          >
-            Read more
-          </Link>
-        </div>
+        <Link
+          href={`/stories/${story.slug}`}
+          className="mt-4 inline-block text-sm font-medium text-[#0f3f75] hover:underline"
+        >
+          Read more
+        </Link>
       </div>
     </article>
+  );
+}
+
+function CompactStoryLink({ story }: { story: Story }) {
+  return (
+    <Link
+      href={`/stories/${story.slug}`}
+      className="block border-b border-[#dcdcdc] py-5 last:border-b-0 hover:bg-[#fafafa]"
+    >
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#3f7f68]">
+        {labelForStory(story)}
+      </p>
+
+      <h3 className="mt-2 text-xl font-semibold leading-tight text-[#2f2f2f]">
+        {story.title}
+      </h3>
+
+      <p className="mt-2 text-sm text-slate-500">
+        {story.published_at ? formatDate(story.published_at) : ""}
+        {story.published_at && story.reading_time ? " · " : ""}
+        {story.reading_time ? `${story.reading_time} min read` : ""}
+      </p>
+    </Link>
+  );
+}
+
+function SectionBlock({
+  title,
+  subtitle,
+  stories,
+}: {
+  title: string;
+  subtitle: string;
+  stories: Story[];
+}) {
+  if (!stories.length) return null;
+
+  return (
+    <section className="border-b border-[#dcdcdc] py-10">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3f7f68]">
+        {subtitle}
+      </p>
+      <h2 className="mt-2 text-3xl font-semibold text-[#2f2f2f]">{title}</h2>
+
+      <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {stories.map((story) => (
+          <StoryCard key={story.id} story={story} />
+        ))}
+      </div>
+    </section>
   );
 }
 
 export default async function HomePage() {
   const supabase = createSupabaseServerClient();
 
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from("stories")
-    .select(
-      "id, title, slug, excerpt, featured_image_url, section, category, published_at, reading_time"
-    )
+    .select(`
+      id,
+      title,
+      slug,
+      excerpt,
+      featured_image_url,
+      section,
+      category,
+      published_at,
+      reading_time,
+      author_id,
+      author:authors!stories_author_id_fkey (
+        id,
+        display_name,
+        full_name,
+        role,
+        avatar_url
+      )
+    `)
     .eq("status", "published")
     .order("published_at", { ascending: false })
     .limit(30);
 
-  if (error) {
-    console.error("Homepage stories query failed:", error);
-  }
+  const stories: Story[] = (data as Story[]) ?? [];
 
-  const stories: Story[] = data ?? [];
+  const latestStories = stories.slice(0, 4);
+
+  const publicationStories = stories
+    .filter(
+      (s) =>
+        s.category?.toLowerCase().includes("publication") ||
+        s.category?.toLowerCase().includes("report") ||
+        s.category?.toLowerCase().includes("bulletin")
+    )
+    .slice(0, 3);
+
+  const southSudanStories = stories
+    .filter((s) => s.section === "south-sudan")
+    .slice(0, 3);
+
+  const businessStories = stories
+    .filter((s) => s.section === "business")
+    .slice(0, 3);
+
+  const politicsStories = stories
+    .filter((s) => s.section === "politics")
+    .slice(0, 3);
+
+  const opinionStories = stories
+    .filter((s) => s.section === "opinion")
+    .slice(0, 3);
+
+  const cultureSportStories = stories
+    .filter((s) => s.section === "culture-sport")
+    .slice(0, 3);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
-      {stories.length > 0 ? (
-        <section className="py-4">
-          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-            {stories.map((story) => (
-              <StoryCard key={story.id} story={story} />
-            ))}
+      {latestStories.length > 0 ? (
+        <section className="border-b border-[#dcdcdc] py-10">
+          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+            <div>
+              <StoryCard story={latestStories[0]} />
+            </div>
+
+            <div>
+              {latestStories.slice(1).map((story) => (
+                <CompactStoryLink key={story.id} story={story} />
+              ))}
+            </div>
           </div>
         </section>
-      ) : (
-        <section className="py-10">
-          <div className="border border-[#d8d8d8] bg-white p-6 text-sm text-slate-600">
-            No published stories yet.
-          </div>
-        </section>
-      )}
+      ) : null}
+
+      <SectionBlock
+        title="Reports, bulletins, and reference pieces"
+        subtitle="Publications"
+        stories={publicationStories}
+      />
+
+      <SectionBlock
+        title="South Sudan"
+        subtitle="National reference"
+        stories={southSudanStories}
+      />
+
+      <SectionBlock
+        title="Business"
+        subtitle="Economy, markets, and data"
+        stories={businessStories}
+      />
+
+      <SectionBlock
+        title="Politics"
+        subtitle="Public affairs and power"
+        stories={politicsStories}
+      />
+
+      <SectionBlock
+        title="Opinion"
+        subtitle="Analysis and commentary"
+        stories={opinionStories}
+      />
+
+      <SectionBlock
+        title="Culture & Sport"
+        subtitle="Heritage, arts, and games"
+        stories={cultureSportStories}
+      />
     </main>
   );
 }
