@@ -11,16 +11,7 @@ const playfair = Playfair_Display({
   weight: ["600", "700"],
 });
 
-type StoryAuthor = {
-  id: string;
-  display_name: string | null;
-  full_name: string | null;
-  role: string | null;
-  bio: string | null;
-  avatar_url: string | null;
-};
-
-type StoryQueryRow = {
+type StoryRow = {
   id: string;
   title: string;
   slug: string;
@@ -32,7 +23,15 @@ type StoryQueryRow = {
   published_at: string | null;
   reading_time: number | null;
   author_id: string | null;
-  author: StoryAuthor[] | null;
+};
+
+type AuthorRow = {
+  id: string;
+  display_name: string | null;
+  full_name: string | null;
+  role: string | null;
+  bio: string | null;
+  avatar_url: string | null;
 };
 
 function formatDate(dateString: string | null) {
@@ -79,9 +78,10 @@ export default async function StoryPage({
   const { slug } = await params;
   const supabase = createSupabaseServerClient();
 
-  const { data, error } = await supabase
+  const { data: storyData, error: storyError } = await supabase
     .from("stories")
-    .select(`
+    .select(
+      `
       id,
       title,
       slug,
@@ -92,34 +92,38 @@ export default async function StoryPage({
       featured_image_url,
       published_at,
       reading_time,
-      author_id,
-      author:authors!stories_author_id_fkey (
-        id,
-        display_name,
-        full_name,
-        role,
-        bio,
-        avatar_url
-      )
-    `)
+      author_id
+    `
+    )
     .eq("slug", slug)
     .eq("status", "published")
     .single();
 
-  if (error || !data) {
+  if (storyError || !storyData) {
     notFound();
   }
 
-  const story = data as StoryQueryRow;
-  const linkedAuthor = story.author?.[0] ?? null;
+  const story = storyData as StoryRow;
+
+  let author: AuthorRow | null = null;
+
+  if (story.author_id) {
+    const { data: authorData } = await supabase
+      .from("authors")
+      .select("id, display_name, full_name, role, bio, avatar_url")
+      .eq("id", story.author_id)
+      .single();
+
+    author = (authorData as AuthorRow | null) ?? null;
+  }
 
   const storyLabel = labelForStory(story);
   const authorName =
-    linkedAuthor?.display_name || linkedAuthor?.full_name || "Editor";
+    author?.display_name || author?.full_name || "Editor";
   const authorRole =
-    linkedAuthor?.role || "Contributor at Nile Metrica";
-  const authorBio = linkedAuthor?.bio || "";
-  const authorAvatar = linkedAuthor?.avatar_url || null;
+    author?.role || "Contributor at Nile Metrica";
+  const authorBio = author?.bio || "";
+  const authorAvatar = author?.avatar_url || null;
   const publishedDate = formatDate(story.published_at);
   const readingTime = story.reading_time ?? 1;
 
