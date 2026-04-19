@@ -56,7 +56,7 @@ export default function AdminProfilesPage() {
       .order("display_name", { ascending: true });
 
     if (error) {
-      setFeedback(error.message);
+      setFeedback(`Load failed: ${error.message}`);
     } else {
       setAuthors(data ?? []);
     }
@@ -97,11 +97,7 @@ export default function AdminProfilesPage() {
       }
 
       const ext = fileExtension(file);
-      const safeName = (
-        form.display_name ||
-        form.full_name ||
-        "author"
-      )
+      const safeName = (form.display_name || form.full_name || "author")
         .trim()
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
@@ -117,7 +113,9 @@ export default function AdminProfilesPage() {
           contentType: file.type,
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
 
       const {
         data: { publicUrl },
@@ -184,18 +182,28 @@ export default function AdminProfilesPage() {
           .update(payload)
           .eq("id", editingId);
 
-        if (error) throw error;
+        if (error) {
+          throw new Error(error.message);
+        }
+
         setFeedback("Author updated.");
       } else {
         const { error } = await supabase.from("authors").insert(payload);
-        if (error) throw error;
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
         setFeedback("Author created.");
       }
 
-      resetForm();
+      setEditingId(null);
+      setForm(emptyForm);
       await loadAuthors();
     } catch (error) {
-      setFeedback(error instanceof Error ? error.message : "Unable to save profile.");
+      setFeedback(
+        error instanceof Error ? error.message : "Unable to save profile."
+      );
     } finally {
       setSaving(false);
     }
@@ -296,7 +304,7 @@ export default function AdminProfilesPage() {
                 <img
                   src={form.avatar_url}
                   alt={form.display_name || form.full_name || "Author"}
-                  className="h-24 w-24 rounded-full object-cover border border-[#d8d8d8]"
+                  className="h-24 w-24 rounded-full border border-[#d8d8d8] object-cover"
                 />
               </div>
             ) : null}
