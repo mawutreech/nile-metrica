@@ -23,7 +23,7 @@ type NavGroup = {
 
 const navGroups: NavGroup[] = [
   { label: "Home", href: "/" },
-  { label: "News", href: "/" },
+  { label: "News", href: "/news" },
   { label: "Business & Tech", href: "/economy" },
   { label: "Opinion", href: "/opinion" },
   { label: "Data & Statistics", href: "/data" },

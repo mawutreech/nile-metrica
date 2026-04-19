@@ -1,21 +1,55 @@
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-type Props = {
-  params: Promise<{ slug: string }>;
+type Story = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  body_html: string;
+  featured_image_url: string | null;
+  section: string;
+  category: string | null;
+  published_at: string | null;
+  reading_time: number | null;
+  author_id: string | null;
 };
 
-export default async function StoryPage({ params }: Props) {
+type Author = {
+  id: string;
+  display_name: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  role: string | null;
+};
+
+function formatDate(dateString: string | null) {
+  if (!dateString) return "";
+  return new Date(dateString).toLocaleDateString("en-AU", {
+    day: "numeric",
+    month: "numeric",
+    year: "numeric",
+  });
+}
+
+function sectionLabel(story: Story) {
+  if (story.category?.trim()) return story.category.toUpperCase();
+  return story.section.replace(/-/g, " ").toUpperCase();
+}
+
+export default async function StoryPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const supabase = createSupabaseServerClient();
 
   const { data: story, error } = await supabase
     .from("stories")
     .select(
-      "id, title, excerpt, body_html, featured_image_url, published_at, reading_time, section, category, author_id"
+      "id, title, slug, excerpt, body_html, featured_image_url, section, category, published_at, reading_time, author_id, status"
     )
     .eq("slug", slug)
     .eq("status", "published")
@@ -25,127 +59,84 @@ export default async function StoryPage({ params }: Props) {
     notFound();
   }
 
-  const { data: author } = await supabase
-    .from("profiles")
-    .select("full_name, bio, avatar_url")
-    .eq("id", story.author_id)
-    .single();
+  let author: Author | null = null;
 
-  const storyUrl = `https://nilemetrica.com/stories/${slug}`;
+  if (story.author_id) {
+    const { data: authorData } = await supabase
+      .from("profiles")
+      .select("id, display_name, bio, avatar_url, role")
+      .eq("id", story.author_id)
+      .single();
+
+    author = authorData;
+  }
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-12">
-      <header className="mb-8 border-b border-slate-200 pb-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
-          {story.category || story.section}
+    <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+      <article>
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#466]">
+          {sectionLabel(story)}
         </p>
 
-        <h1 className="mt-3 text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl">
+        <h1 className="mt-4 max-w-4xl text-5xl font-semibold leading-tight tracking-tight text-[#2f2f2f] sm:text-6xl">
           {story.title}
         </h1>
 
-        {author ? (
-          <section className="mt-6 border border-slate-200 bg-slate-50 p-5">
-            <div className="flex items-start gap-4">
-              {author.avatar_url ? (
-                <img
-                  src={author.avatar_url}
-                  alt={author.full_name || "Author"}
-                  className="h-20 w-20 shrink-0 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xl font-semibold text-slate-600">
-                  {author.full_name?.charAt(0).toUpperCase() || "A"}
-                </div>
-              )}
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
-                  Author
-                </p>
-                <h2 className="mt-2 text-xl font-semibold text-slate-900">
-                  {author.full_name || "Unknown author"}
-                </h2>
-                {author.bio ? (
-                  <p className="mt-3 text-sm leading-7 text-slate-700">
-                    {author.bio}
-                  </p>
-                ) : null}
+        <div className="mt-8 border border-[#e3e3e3] bg-[#fafafa] p-6">
+          <div className="flex items-center gap-4">
+            {author?.avatar_url ? (
+              <img
+                src={author.avatar_url}
+                alt={author.display_name || "Author"}
+                className="h-20 w-20 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#dfe5ea] text-3xl font-semibold text-[#334]">
+                {(author?.display_name || "E").charAt(0).toUpperCase()}
               </div>
+            )}
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#466]">
+                Author
+              </p>
+              <h2 className="mt-1 text-3xl font-semibold text-[#2f2f2f]">
+                {author?.display_name || "Editor"}
+              </h2>
+              <p className="mt-2 text-base text-[#555]">
+                {author?.bio || `${author?.role || "Contributor"} at Nile Metrica`}
+              </p>
             </div>
-          </section>
-        ) : null}
+          </div>
+        </div>
 
         {story.excerpt ? (
-          <p className="mt-6 text-lg leading-8 text-slate-600">
-            {story.excerpt}
-          </p>
+          <p className="mt-8 text-[1.15rem] leading-9 text-[#444]">{story.excerpt}</p>
         ) : null}
 
-        <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate-500">
-          {story.published_at ? (
-            <span>{new Date(story.published_at).toLocaleDateString()}</span>
-          ) : null}
-          <span>{story.reading_time} min read</span>
+        <div className="mt-6 flex flex-wrap items-center gap-4 text-base text-slate-500">
+          {story.published_at ? <span>{formatDate(story.published_at)}</span> : null}
+          {story.reading_time ? <span>{story.reading_time} min read</span> : null}
         </div>
-      </header>
 
-      {story.featured_image_url ? (
-        <div className="mb-8">
-          <img
-            src={story.featured_image_url}
-            alt={story.title}
-            className="w-full border object-cover"
-          />
-        </div>
-      ) : null}
+        {story.featured_image_url ? (
+          <div className="relative mt-10 aspect-[16/9] w-full overflow-hidden bg-[#f3f3f3]">
+            <Image
+              src={story.featured_image_url}
+              alt={story.title}
+              fill
+              className="object-cover"
+              sizes="100vw"
+              unoptimized
+            />
+          </div>
+        ) : null}
 
-      <article
-        className="prose max-w-none prose-headings:text-slate-900 prose-p:text-slate-700"
-        dangerouslySetInnerHTML={{ __html: story.body_html }}
-      />
-
-      <div className="mt-10 border-t pt-6">
-        <p className="mb-3 font-medium text-slate-900">Share this story</p>
-        <div className="flex flex-wrap gap-3">
-          <a
-            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(
-              storyUrl
-            )}&text=${encodeURIComponent(story.title)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border px-4 py-2 text-sm"
-          >
-            X
-          </a>
-
-          <a
-            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-              storyUrl
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border px-4 py-2 text-sm"
-          >
-            Facebook
-          </a>
-
-          <a
-            href={`https://wa.me/?text=${encodeURIComponent(
-              `${story.title} ${storyUrl}`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border px-4 py-2 text-sm"
-          >
-            WhatsApp
-          </a>
-
-          <Link href="/" className="border px-4 py-2 text-sm">
-            Back home
-          </Link>
-        </div>
-      </div>
+        <div
+          className="prose prose-lg mt-10 max-w-none prose-headings:text-[#2f2f2f] prose-p:leading-9"
+          dangerouslySetInnerHTML={{ __html: story.body_html }}
+        />
+      </article>
     </main>
   );
 }

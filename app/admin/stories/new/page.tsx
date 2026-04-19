@@ -1,54 +1,74 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import slugify from "slugify";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import StoryEditor from "@/components/admin/StoryEditor";
 
 const SECTION_OPTIONS = [
-  { label: "States & Territories", value: "states-territories" },
-  { label: "Business", value: "business" },
+  { label: "News", value: "south-sudan" },
+  { label: "Business & Tech", value: "business" },
   { label: "Opinion", value: "opinion" },
-  { label: "Sports", value: "sports" },
+  { label: "Politics", value: "politics" },
   { label: "Health", value: "health" },
   { label: "Education", value: "education" },
   { label: "Environment", value: "environment" },
+  { label: "States & Territories", value: "states-territories" },
   { label: "Data & Statistics", value: "data-statistics" },
 ];
 
-type StoryFormState = {
-  title: string;
-  slug: string;
-  excerpt: string;
-  section: string;
-  category: string;
-  status: "draft" | "published";
-  body_html: string;
-  featured_image_url: string;
-  seo_title: string;
-  seo_description: string;
+type AuthorOption = {
+  id: string;
+  display_name: string | null;
+  full_name: string | null;
 };
 
 export default function NewStoryPage() {
   const router = useRouter();
   const supabase = createSupabaseBrowserClient();
 
-  const [form, setForm] = useState<StoryFormState>({
+  const [authors, setAuthors] = useState<AuthorOption[]>([]);
+  const [loadingAuthors, setLoadingAuthors] = useState(true);
+
+  const [form, setForm] = useState({
     title: "",
     slug: "",
     excerpt: "",
-    section: "states-territories",
+    section: "south-sudan",
     category: "",
     status: "draft",
     body_html: "<p></p>",
     featured_image_url: "",
     seo_title: "",
     seo_description: "",
+    author_id: "",
   });
 
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState("");
+
+  useEffect(() => {
+    async function loadAuthors() {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, display_name, full_name")
+        .order("display_name", { ascending: true });
+
+      if (!error && data) {
+        setAuthors(data);
+        if (data.length > 0) {
+          setForm((current) => ({
+            ...current,
+            author_id: current.author_id || data[0].id,
+          }));
+        }
+      }
+      setLoadingAuthors(false);
+    }
+
+    loadAuthors();
+  }, [supabase]);
 
   const readingTime = useMemo(() => {
     const plainText = form.body_html.replace(/<[^>]+>/g, " ").trim();
@@ -85,62 +105,33 @@ export default function NewStoryPage() {
     setFeedback("");
 
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError) {
-        throw new Error(userError.message);
-      }
-
-      if (!user) {
-        throw new Error("You must be logged in.");
-      }
-
-      const title = form.title.trim();
-      const slug = form.slug.trim();
-      const bodyHtml = form.body_html?.trim() || "<p></p>";
-
-      if (!title || !slug || !bodyHtml) {
-        throw new Error("Title, slug, and story body are required.");
-      }
-
       const payload = {
-        title,
-        slug,
+        title: form.title.trim(),
+        slug: form.slug.trim(),
         excerpt: form.excerpt.trim() || null,
-        body_html: bodyHtml,
-        featured_image_url: form.featured_image_url.trim() || null,
         section: form.section,
         category: form.category.trim() || null,
         status: form.status,
-        author_id: user.id,
-        reading_time: Math.max(1, Number(readingTime) || 1),
-        published_at: form.status === "published" ? new Date().toISOString() : null,
+        body_html: form.body_html,
+        featured_image_url: form.featured_image_url.trim() || null,
         seo_title: form.seo_title.trim() || null,
         seo_description: form.seo_description.trim() || null,
-        ai_generated: false,
-        editor_status: form.status === "published" ? "approved" : "draft",
-        source_url: null,
-        source_name: null,
-        source_published_at: null,
-        why_it_matters: null,
-        review_notes: null,
+        reading_time: readingTime,
+        author_id: form.author_id || null,
+        published_at: form.status === "published" ? new Date().toISOString() : null,
       };
+
+      if (!payload.title || !payload.slug || !payload.body_html) {
+        throw new Error("Title, slug, and story body are required.");
+      }
 
       const { error } = await supabase.from("stories").insert(payload);
 
-      if (error) {
-        console.error("Create story error:", error);
-        throw new Error(error.message || "Unable to save story.");
-      }
+      if (error) throw error;
 
-      setFeedback("Story saved successfully.");
       router.push("/admin/stories");
       router.refresh();
     } catch (error) {
-      console.error(error);
       setFeedback(error instanceof Error ? error.message : "Unable to save story.");
     } finally {
       setSaving(false);
@@ -150,11 +141,9 @@ export default function NewStoryPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <div className="max-w-3xl">
-        <h1 className="text-3xl font-semibold tracking-tight text-[#2f2f2f]">
-          New story
-        </h1>
+        <h1 className="text-5xl font-semibold tracking-tight text-[#2f2f2f]">New story</h1>
         <p className="mt-4 text-lg text-[#555]">
-          Create a draft, review it, and publish when ready.
+          Create a draft, assign an author, and publish when ready.
         </p>
       </div>
 
@@ -194,7 +183,7 @@ export default function NewStoryPage() {
           />
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-4">
           <div>
             <label className="mb-2 block text-sm font-medium text-[#333]">Section</label>
             <select
@@ -233,13 +222,30 @@ export default function NewStoryPage() {
               <option value="published">Published</option>
             </select>
           </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-[#333]">Author</label>
+            <select
+              name="author_id"
+              value={form.author_id}
+              onChange={handleChange}
+              className="w-full border border-[#d8d8d8] px-4 py-3"
+              disabled={loadingAuthors}
+            >
+              {authors.map((author) => (
+                <option key={author.id} value={author.id}>
+                  {author.display_name || author.full_name || "Unnamed author"}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div>
           <label className="mb-2 block text-sm font-medium text-[#333]">Story body</label>
           <StoryEditor
             value={form.body_html}
-            onChange={(value: string) =>
+            onChange={(value) =>
               setForm((current) => ({
                 ...current,
                 body_html: value,
@@ -250,9 +256,7 @@ export default function NewStoryPage() {
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-[#333]">
-            Featured image URL
-          </label>
+          <label className="mb-2 block text-sm font-medium text-[#333]">Featured image URL</label>
           <input
             name="featured_image_url"
             value={form.featured_image_url}
@@ -273,9 +277,7 @@ export default function NewStoryPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-[#333]">
-              SEO description
-            </label>
+            <label className="mb-2 block text-sm font-medium text-[#333]">SEO description</label>
             <input
               name="seo_description"
               value={form.seo_description}
