@@ -20,7 +20,7 @@ type StoryAuthor = {
   avatar_url: string | null;
 };
 
-type StoryRow = {
+type StoryQueryRow = {
   id: string;
   title: string;
   slug: string;
@@ -32,7 +32,7 @@ type StoryRow = {
   published_at: string | null;
   reading_time: number | null;
   author_id: string | null;
-  author: StoryAuthor | null;
+  author: StoryAuthor[] | null;
 };
 
 function formatDate(dateString: string | null) {
@@ -44,7 +44,7 @@ function formatDate(dateString: string | null) {
   });
 }
 
-function labelForStory(story: Pick<StoryRow, "section" | "category">) {
+function labelForStory(story: { section: string; category: string | null }) {
   if (story.category?.trim()) return story.category;
 
   switch (story.section) {
@@ -110,19 +110,16 @@ export default async function StoryPage({
     notFound();
   }
 
-  const story = data as StoryRow;
+  const story = data as StoryQueryRow;
+  const linkedAuthor = story.author?.[0] ?? null;
+
   const storyLabel = labelForStory(story);
-
   const authorName =
-    story.author?.display_name || story.author?.full_name || "Editor";
-
+    linkedAuthor?.display_name || linkedAuthor?.full_name || "Editor";
   const authorRole =
-    story.author?.role || "Contributor at Nile Metrica";
-
-  const authorBio =
-    story.author?.bio || "";
-
-  const authorAvatar = story.author?.avatar_url || null;
+    linkedAuthor?.role || "Contributor at Nile Metrica";
+  const authorBio = linkedAuthor?.bio || "";
+  const authorAvatar = linkedAuthor?.avatar_url || null;
   const publishedDate = formatDate(story.published_at);
   const readingTime = story.reading_time ?? 1;
 
