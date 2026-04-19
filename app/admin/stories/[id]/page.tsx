@@ -25,14 +25,31 @@ type AuthorOption = {
   role: string | null;
 };
 
+type StoryRow = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  section: string;
+  category: string | null;
+  status: string;
+  body_html: string;
+  featured_image_url: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  author_id: string | null;
+};
+
 export default function EditStoryPage() {
-  const params = useParams();
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
+  const params = useParams();
   const storyId = String(params.id);
+
+  const [supabase] = useState(() => createSupabaseBrowserClient());
 
   const [authors, setAuthors] = useState<AuthorOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingAuthors, setLoadingAuthors] = useState(true);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState("");
 
@@ -50,16 +67,22 @@ export default function EditStoryPage() {
     author_id: "",
   });
 
-  useEffect(() => {
-    async function loadPage() {
-      setLoading(true);
+  const readingTime = useMemo(() => {
+    const plainText = form.body_html.replace(/<[^>]+>/g, " ").trim();
+    const words = plainText ? plainText.split(/\s+/).length : 0;
+    return Math.max(1, Math.ceil(words / 200));
+  }, [form.body_html]);
 
-      const [{ data: authorData }, { data: storyData, error: storyError }] =
+  useEffect(() => {
+    let active = true;
+
+    async function loadPageData() {
+      setLoading(true);
+      setLoadingAuthors(true);
+      setFeedback("");
+
+      const [{ data: story, error: storyError }, { data: authorRows, error: authorsError }] =
         await Promise.all([
-          supabase
-            .from("authors")
-            .select("id, display_name, full_name, role")
-            .order("display_name", { ascending: true }),
           supabase
             .from("stories")
             .select(
@@ -67,41 +90,54 @@ export default function EditStoryPage() {
             )
             .eq("id", storyId)
             .single(),
+          supabase
+            .from("authors")
+            .select("id, display_name, full_name, role")
+            .order("display_name", { ascending: true }),
         ]);
 
-      if (authorData) {
-        setAuthors(authorData);
+      if (!active) return;
+
+      if (authorsError) {
+        setFeedback(`Failed to load authors: ${authorsError.message}`);
+        setAuthors([]);
+      } else {
+        setAuthors(authorRows ?? []);
       }
 
-      if (storyError || !storyData) {
-        setFeedback(storyError?.message || "Story not found.");
-      } else {
-        setForm({
-          title: storyData.title ?? "",
-          slug: storyData.slug ?? "",
-          excerpt: storyData.excerpt ?? "",
-          section: storyData.section ?? "south-sudan",
-          category: storyData.category ?? "",
-          status: storyData.status ?? "draft",
-          body_html: storyData.body_html ?? "<p></p>",
-          featured_image_url: storyData.featured_image_url ?? "",
-          seo_title: storyData.seo_title ?? "",
-          seo_description: storyData.seo_description ?? "",
-          author_id: storyData.author_id ?? authorData?.[0]?.id ?? "",
-        });
+      setLoadingAuthors(false);
+
+      if (storyError) {
+        setFeedback(`Failed to load story: ${storyError.message}`);
+        setLoading(false);
+        return;
       }
+
+      const typedStory = story as StoryRow;
+
+      setForm({
+        title: typedStory.title ?? "",
+        slug: typedStory.slug ?? "",
+        excerpt: typedStory.excerpt ?? "",
+        section: typedStory.section ?? "south-sudan",
+        category: typedStory.category ?? "",
+        status: typedStory.status ?? "draft",
+        body_html: typedStory.body_html ?? "<p></p>",
+        featured_image_url: typedStory.featured_image_url ?? "",
+        seo_title: typedStory.seo_title ?? "",
+        seo_description: typedStory.seo_description ?? "",
+        author_id: typedStory.author_id ?? "",
+      });
 
       setLoading(false);
     }
 
-    loadPage();
-  }, [storyId, supabase]);
+    loadPageData();
 
-  const readingTime = useMemo(() => {
-    const plainText = form.body_html.replace(/<[^>]+>/g, " ").trim();
-    const words = plainText ? plainText.split(/\s+/).length : 0;
-    return Math.max(1, Math.ceil(words / 200));
-  }, [form.body_html]);
+    return () => {
+      active = false;
+    };
+  }, [storyId, supabase]);
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -132,6 +168,11 @@ export default function EditStoryPage() {
     setFeedback("");
 
     try {
+      const validAuthorId =
+        form.author_id && authors.some((author) => author.id === form.author_id)
+          ? form.author_id
+          : null;
+
       const payload = {
         title: form.title.trim(),
         slug: form.slug.trim(),
@@ -143,9 +184,10 @@ export default function EditStoryPage() {
         featured_image_url: form.featured_image_url.trim() || null,
         seo_title: form.seo_title.trim() || null,
         seo_description: form.seo_description.trim() || null,
+        author_id: validAuthorId,
         reading_time: readingTime,
-        author_id: form.author_id || null,
-        published_at: form.status === "published" ? new Date().toISOString() : null,
+        published_at:
+          form.status === "published" ? new Date().toISOString() : null,
       };
 
       if (!payload.title || !payload.slug || !payload.body_html) {
@@ -157,12 +199,19 @@ export default function EditStoryPage() {
         .update(payload)
         .eq("id", storyId);
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message);
+      }
 
-      router.push("/admin/stories");
-      router.refresh();
+      setFeedback("Story updated successfully.");
+      setTimeout(() => {
+        router.push("/admin/stories");
+        router.refresh();
+      }, 400);
     } catch (error) {
-      setFeedback(error instanceof Error ? error.message : "Unable to update story.");
+      setFeedback(
+        error instanceof Error ? error.message : "Unable to update story."
+      );
     } finally {
       setSaving(false);
     }
@@ -183,7 +232,7 @@ export default function EditStoryPage() {
           Edit story
         </h1>
         <p className="mt-4 text-lg text-[#555]">
-          Update story content, author details, and publishing status.
+          Update the draft, author, and publishing details.
         </p>
       </div>
 
@@ -257,6 +306,7 @@ export default function EditStoryPage() {
               value={form.category}
               onChange={handleChange}
               className="w-full border border-[#d8d8d8] px-4 py-3 outline-none"
+              placeholder="Optional"
             />
           </div>
 
@@ -284,17 +334,15 @@ export default function EditStoryPage() {
               value={form.author_id}
               onChange={handleChange}
               className="w-full border border-[#d8d8d8] px-4 py-3"
+              disabled={loadingAuthors}
             >
-              {authors.length === 0 ? (
-                <option value="">No authors found</option>
-              ) : (
-                authors.map((author) => (
-                  <option key={author.id} value={author.id}>
-                    {author.display_name || author.full_name || "Unnamed author"}
-                    {author.role ? ` — ${author.role}` : ""}
-                  </option>
-                ))
-              )}
+              <option value="">No author selected</option>
+              {authors.map((author) => (
+                <option key={author.id} value={author.id}>
+                  {author.display_name || author.full_name || "Unnamed author"}
+                  {author.role ? ` — ${author.role}` : ""}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -324,6 +372,7 @@ export default function EditStoryPage() {
             value={form.featured_image_url}
             onChange={handleChange}
             className="w-full border border-[#d8d8d8] px-4 py-3 outline-none"
+            placeholder="Leave blank if unsure"
           />
         </div>
 
