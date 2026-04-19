@@ -27,8 +27,6 @@ type AuthorOption = {
 
 export default function NewStoryPage() {
   const router = useRouter();
-
-  // Create once only
   const [supabase] = useState(() => createSupabaseBrowserClient());
 
   const [authors, setAuthors] = useState<AuthorOption[]>([]);
@@ -66,13 +64,18 @@ export default function NewStoryPage() {
 
       if (error) {
         setFeedback(`Failed to load authors: ${error.message}`);
+        setAuthors([]);
       } else {
-        const rows = data ?? [];
-        setAuthors(rows);
+        const authorRows = data ?? [];
+        setAuthors(authorRows);
 
         setForm((current) => ({
           ...current,
-          author_id: current.author_id || rows[0]?.id || "",
+          author_id:
+            current.author_id &&
+            authorRows.some((author) => author.id === current.author_id)
+              ? current.author_id
+              : "",
         }));
       }
 
@@ -84,7 +87,7 @@ export default function NewStoryPage() {
     return () => {
       active = false;
     };
-  }, []); // important: empty dependency array
+  }, [supabase]);
 
   const readingTime = useMemo(() => {
     const plainText = form.body_html.replace(/<[^>]+>/g, " ").trim();
@@ -121,6 +124,11 @@ export default function NewStoryPage() {
     setFeedback("");
 
     try {
+      const validAuthorId =
+        form.author_id && authors.some((author) => author.id === form.author_id)
+          ? form.author_id
+          : null;
+
       const payload = {
         title: form.title.trim(),
         slug: form.slug.trim(),
@@ -133,7 +141,7 @@ export default function NewStoryPage() {
         seo_title: form.seo_title.trim() || null,
         seo_description: form.seo_description.trim() || null,
         reading_time: readingTime,
-        author_id: form.author_id.trim() || null,
+        author_id: validAuthorId,
         published_at:
           form.status === "published" ? new Date().toISOString() : null,
       };
@@ -145,7 +153,7 @@ export default function NewStoryPage() {
       const { data, error } = await supabase
         .from("stories")
         .insert(payload)
-        .select("id")
+        .select("id, slug")
         .single();
 
       if (error) {
@@ -282,18 +290,13 @@ export default function NewStoryPage() {
               className="w-full border border-[#d8d8d8] px-4 py-3"
               disabled={loadingAuthors}
             >
-              {authors.length === 0 ? (
-                <option value="">
-                  {loadingAuthors ? "Loading authors..." : "No authors found"}
+              <option value="">No author selected</option>
+              {authors.map((author) => (
+                <option key={author.id} value={author.id}>
+                  {author.display_name || author.full_name || "Unnamed author"}
+                  {author.role ? ` — ${author.role}` : ""}
                 </option>
-              ) : (
-                authors.map((author) => (
-                  <option key={author.id} value={author.id}>
-                    {author.display_name || author.full_name || "Unnamed author"}
-                    {author.role ? ` — ${author.role}` : ""}
-                  </option>
-                ))
-              )}
+              ))}
             </select>
           </div>
         </div>
@@ -325,6 +328,9 @@ export default function NewStoryPage() {
             className="w-full border border-[#d8d8d8] px-4 py-3 outline-none"
             placeholder="Leave blank if unsure"
           />
+          <p className="mt-2 text-xs text-slate-500">
+            Use the original source image URL, not a Google thumbnail link.
+          </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
