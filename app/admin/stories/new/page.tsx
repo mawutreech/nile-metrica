@@ -124,23 +124,39 @@ export default function NewStoryPage() {
         seo_description: form.seo_description.trim() || null,
         reading_time: readingTime,
         author_id: form.author_id.trim() || null,
-        published_at: form.status === "published" ? new Date().toISOString() : null,
+        published_at:
+          form.status === "published" ? new Date().toISOString() : null,
       };
 
       if (!payload.title || !payload.slug || !payload.body_html) {
         throw new Error("Title, slug, and story body are required.");
       }
 
-      const { error } = await supabase.from("stories").insert(payload);
+      console.log("Saving story payload:", payload);
+
+      const { data, error } = await supabase
+        .from("stories")
+        .insert(payload)
+        .select("id, title, slug, status")
+        .single();
 
       if (error) {
-        throw new Error(error.message);
+        console.error("Supabase insert error:", error);
+        throw new Error(error.message || "Database insert failed.");
       }
 
-      setFeedback("Story saved successfully.");
-      router.push("/admin/stories");
-      router.refresh();
+      if (!data?.id) {
+        throw new Error("Story was not returned after insert.");
+      }
+
+      setFeedback("Story saved successfully. Redirecting...");
+
+      setTimeout(() => {
+        router.push("/admin/stories");
+        router.refresh();
+      }, 500);
     } catch (error) {
+      console.error("Save story failed:", error);
       setFeedback(
         error instanceof Error ? error.message : "Unable to save story."
       );
