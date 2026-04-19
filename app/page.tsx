@@ -5,14 +5,6 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-type StoryAuthor = {
-  id: string;
-  display_name: string | null;
-  full_name: string | null;
-  role: string | null;
-  avatar_url: string | null;
-};
-
 type Story = {
   id: string;
   title: string;
@@ -24,7 +16,14 @@ type Story = {
   published_at: string | null;
   reading_time: number | null;
   author_id: string | null;
-  author: StoryAuthor[] | null;
+};
+
+type Author = {
+  id: string;
+  display_name: string | null;
+  full_name: string | null;
+  role: string | null;
+  avatar_url: string | null;
 };
 
 function formatDate(dateString: string | null) {
@@ -65,12 +64,36 @@ function labelForStory(story: Pick<Story, "section" | "category">) {
   }
 }
 
-function StoryCard({ story }: { story: Story }) {
-  const linkedAuthor = story.author?.[0] ?? null;
+async function getAuthorsMap(authorIds: string[]) {
+  if (!authorIds.length) return new Map<string, Author>();
+
+  const supabase = createSupabaseServerClient();
+
+  const { data } = await supabase
+    .from("authors")
+    .select("id, display_name, full_name, role, avatar_url")
+    .in("id", authorIds);
+
+  const map = new Map<string, Author>();
+
+  for (const row of (data ?? []) as Author[]) {
+    map.set(row.id, row);
+  }
+
+  return map;
+}
+
+function StoryCard({
+  story,
+  author,
+}: {
+  story: Story;
+  author?: Author | null;
+}) {
   const authorName =
-    linkedAuthor?.display_name || linkedAuthor?.full_name || "Editor";
-  const authorRole = linkedAuthor?.role || "Contributor at Nile Metrica";
-  const authorAvatar = linkedAuthor?.avatar_url || null;
+    author?.display_name || author?.full_name || "Editor";
+  const authorRole = author?.role || "Contributor at Nile Metrica";
+  const authorAvatar = author?.avatar_url || null;
 
   const showAuthorFallback =
     story.section === "opinion" && !story.featured_image_url;
@@ -178,10 +201,12 @@ function SectionBlock({
   title,
   subtitle,
   stories,
+  authorsById,
 }: {
   title: string;
   subtitle: string;
   stories: Story[];
+  authorsById: Map<string, Author>;
 }) {
   if (!stories.length) return null;
 
@@ -194,7 +219,11 @@ function SectionBlock({
 
       <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {stories.map((story) => (
-          <StoryCard key={story.id} story={story} />
+          <StoryCard
+            key={story.id}
+            story={story}
+            author={story.author_id ? authorsById.get(story.author_id) ?? null : null}
+          />
         ))}
       </div>
     </section>
@@ -206,7 +235,8 @@ export default async function HomePage() {
 
   const { data } = await supabase
     .from("stories")
-    .select(`
+    .select(
+      `
       id,
       title,
       slug,
@@ -216,24 +246,27 @@ export default async function HomePage() {
       category,
       published_at,
       reading_time,
-      author_id,
-      author:authors!stories_author_id_fkey (
-        id,
-        display_name,
-        full_name,
-        role,
-        avatar_url
-      )
-    `)
+      author_id
+    `
+    )
     .eq("status", "published")
     .order("published_at", { ascending: false })
     .limit(30);
 
   const stories: Story[] = (data as Story[]) ?? [];
 
-  const latestStories = stories.slice(0, 4);
+  const authorIds = Array.from(
+    new Set(stories.map((s) => s.author_id).filter(Boolean) as string[])
+  );
 
-  const publicationStories = stories
+  const authorsById = await getAuthorsMap(authorIds);
+
+  const latestStories = stories.slice(0, 4);
+  const latestIds = new Set(latestStories.map((s) => s.id));
+
+  const remainingStories = stories.filter((s) => !latestIds.has(s.id));
+
+  const publicationStories = remainingStories
     .filter(
       (s) =>
         s.category?.toLowerCase().includes("publication") ||
@@ -242,23 +275,23 @@ export default async function HomePage() {
     )
     .slice(0, 3);
 
-  const southSudanStories = stories
+  const southSudanStories = remainingStories
     .filter((s) => s.section === "south-sudan")
     .slice(0, 3);
 
-  const businessStories = stories
+  const businessStories = remainingStories
     .filter((s) => s.section === "business")
     .slice(0, 3);
 
-  const politicsStories = stories
+  const politicsStories = remainingStories
     .filter((s) => s.section === "politics")
     .slice(0, 3);
 
-  const opinionStories = stories
+  const opinionStories = remainingStories
     .filter((s) => s.section === "opinion")
     .slice(0, 3);
 
-  const cultureSportStories = stories
+  const cultureSportStories = remainingStories
     .filter((s) => s.section === "culture-sport")
     .slice(0, 3);
 
@@ -268,7 +301,14 @@ export default async function HomePage() {
         <section className="border-b border-[#dcdcdc] py-10">
           <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
             <div>
-              <StoryCard story={latestStories[0]} />
+              <StoryCard
+                story={latestStories[0]}
+                author={
+                  latestStories[0].author_id
+                    ? authorsById.get(latestStories[0].author_id) ?? null
+                    : null
+                }
+              />
             </div>
 
             <div>
@@ -284,36 +324,42 @@ export default async function HomePage() {
         title="Reports, bulletins, and reference pieces"
         subtitle="Publications"
         stories={publicationStories}
+        authorsById={authorsById}
       />
 
       <SectionBlock
         title="South Sudan"
         subtitle="National reference"
         stories={southSudanStories}
+        authorsById={authorsById}
       />
 
       <SectionBlock
         title="Business"
         subtitle="Economy, markets, and data"
         stories={businessStories}
+        authorsById={authorsById}
       />
 
       <SectionBlock
         title="Politics"
         subtitle="Public affairs and power"
         stories={politicsStories}
+        authorsById={authorsById}
       />
 
       <SectionBlock
         title="Opinion"
         subtitle="Analysis and commentary"
         stories={opinionStories}
+        authorsById={authorsById}
       />
 
       <SectionBlock
         title="Culture & Sport"
         subtitle="Heritage, arts, and games"
         stories={cultureSportStories}
+        authorsById={authorsById}
       />
     </main>
   );
