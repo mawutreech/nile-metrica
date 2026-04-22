@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Playfair_Display, Inter } from "next/font/google";
 
@@ -20,11 +19,11 @@ type Story = {
   id: string;
   title: string;
   slug: string;
-  featured_image_url: string | null;
   published_at: string | null;
   reading_time: number | null;
-  category: string | null;
   author_id: string | null;
+  status: string | null;
+  section: string | null;
 };
 
 type Author = {
@@ -35,7 +34,10 @@ type Author = {
   avatar_url: string | null;
 };
 
-function formatRelativeMeta(dateString: string | null, readingTime: number | null) {
+function formatRelativeMeta(
+  dateString: string | null,
+  readingTime: number | null
+) {
   const read = readingTime ? `${readingTime} min read` : "";
 
   if (!dateString) return read;
@@ -51,6 +53,7 @@ function formatRelativeMeta(dateString: string | null, readingTime: number | nul
     label = `${Math.max(1, diffHours)} hours ago`;
   } else {
     const diffDays = Math.floor(diffHours / 24);
+
     if (diffDays === 1) {
       label = "Yesterday";
     } else {
@@ -87,7 +90,7 @@ async function getAuthorsMap(authorIds: string[]) {
 function AuthorAvatar({
   authorName,
   authorAvatar,
-  size = 56,
+  size = 52,
 }: {
   authorName: string;
   authorAvatar: string | null;
@@ -114,7 +117,7 @@ function AuthorAvatar({
   );
 }
 
-function LeadOpinionCard({
+function OpinionCard({
   story,
   author,
 }: {
@@ -125,103 +128,50 @@ function LeadOpinionCard({
   const meta = formatRelativeMeta(story.published_at, story.reading_time);
 
   return (
-    <article className="grid overflow-hidden border border-[#d8dce4] bg-[#eaf1f5] lg:grid-cols-[1.05fr_0.95fr]">
-      <div className="flex flex-col justify-between p-8 md:p-10">
-        <div>
-          <p
-            className={`${uiFont.className} inline-block bg-[#163a8a] px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white`}
+    <article className="flex h-full min-h-[430px] flex-col justify-between border border-[#d8dce4] bg-[#eaf1f5] p-7 md:p-8">
+      <div>
+        <p
+          className={`${uiFont.className} inline-block bg-[#163a8a] px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white`}
+        >
+          Opinion
+        </p>
+
+        <h2
+          className={`${headlineFont.className} mt-6 text-[2.2rem] leading-[0.94] tracking-[-0.02em] text-[#111] md:text-[2.5rem] xl:text-[2.8rem]`}
+        >
+          <Link
+            href={`/stories/${story.slug}`}
+            className="no-underline hover:underline"
           >
-            Opinion
-          </p>
-
-          <h2
-            className={`${headlineFont.className} mt-4 text-3xl leading-[0.97] text-[#111] md:text-4xl lg:text-5xl`}
-          >
-            <Link href={`/stories/${story.slug}`} className="hover:underline">
-              {story.title}
-            </Link>
-          </h2>
-        </div>
-
-        <div className="mt-8 flex items-center gap-4">
-          <AuthorAvatar
-            authorName={authorName}
-            authorAvatar={author?.avatar_url || null}
-            size={58}
-          />
-
-          <div className={uiFont.className}>
-            <p className="text-sm font-bold uppercase tracking-[0.08em] text-[#1b1b1b]">
-              By {authorName}
-            </p>
-            <p className="mt-1 text-xs text-[#5e6670]">{meta}</p>
-          </div>
-        </div>
+            {story.title}
+          </Link>
+        </h2>
       </div>
 
-      <Link
-        href={`/stories/${story.slug}`}
-        className="relative block min-h-[320px] bg-[#dfe7ee]"
-      >
-        {story.featured_image_url ? (
-          <Image
-            src={story.featured_image_url}
-            alt={story.title}
-            fill
-            className="object-cover"
-            unoptimized
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-sm text-[#6a7480]">
-            Opinion
-          </div>
-        )}
-      </Link>
-    </article>
-  );
-}
-
-function SecondaryOpinionCard({
-  story,
-  author,
-}: {
-  story: Story;
-  author?: Author | null;
-}) {
-  const authorName = author?.display_name || author?.full_name || "Editor";
-  const meta = formatRelativeMeta(story.published_at, story.reading_time);
-
-  return (
-    <article className="h-full border border-[#d8dce4] bg-[#eaf1f5] p-6">
-      <p
-        className={`${uiFont.className} inline-block bg-[#163a8a] px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white`}
-      >
-        Opinion
-      </p>
-
-      <h3
-        className={`${headlineFont.className} mt-4 text-[1.7rem] leading-[1.02] text-[#111]`}
-      >
-        <Link href={`/stories/${story.slug}`} className="hover:underline">
-          {story.title}
-        </Link>
-      </h3>
-
-      <div className="mt-6 flex items-center gap-3">
+      <div className="mt-8 flex items-center gap-4">
         <AuthorAvatar
           authorName={authorName}
           authorAvatar={author?.avatar_url || null}
-          size={44}
+          size={50}
         />
 
         <div className={uiFont.className}>
-          <p className="text-sm font-bold uppercase tracking-[0.06em] text-[#1b1b1b]">
+          <p className="text-sm font-bold uppercase tracking-[0.08em] text-[#1b1b1b]">
             By {authorName}
           </p>
           <p className="mt-1 text-xs text-[#5e6670]">{meta}</p>
         </div>
       </div>
     </article>
+  );
+}
+
+function EmptyOpinionCard() {
+  return (
+    <div
+      aria-hidden="true"
+      className="min-h-[430px] border border-[#d8dce4] bg-[#ffffff]"
+    />
   );
 }
 
@@ -234,16 +184,16 @@ export default async function OpinionPage() {
       id,
       title,
       slug,
-      featured_image_url,
       published_at,
       reading_time,
-      category,
-      author_id
+      author_id,
+      status,
+      section
     `)
     .eq("status", "published")
     .eq("section", "opinion")
     .order("published_at", { ascending: false })
-    .limit(12);
+    .limit(60);
 
   const stories: Story[] = (data as Story[]) ?? [];
 
@@ -253,78 +203,34 @@ export default async function OpinionPage() {
 
   const authorsById = await getAuthorsMap(authorIds);
 
-  const leadStory = stories[0] ?? null;
-  const topRightStory = stories[1] ?? null;
-  const lowerStories = stories.slice(2, 6);
-  const remainingStories = stories.slice(6);
+  const remainder = stories.length % 3;
+  const emptySlots = stories.length > 0 && remainder !== 0 ? 3 - remainder : 0;
 
   return (
     <main className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
-      {stories.length > 0 ? (
-        <section className="py-4">
-          <div className="grid gap-1 lg:grid-cols-[1.7fr_1fr]">
-            <div>
-              {leadStory ? (
-                <LeadOpinionCard
-                  story={leadStory}
-                  author={
-                    leadStory.author_id
-                      ? authorsById.get(leadStory.author_id) ?? null
-                      : null
-                  }
-                />
-              ) : null}
-            </div>
+      <section className="py-4">
+        {stories.length > 0 ? (
+          <div className="grid gap-1 md:grid-cols-2 xl:grid-cols-3">
+            {stories.map((story) => (
+              <OpinionCard
+                key={story.id}
+                story={story}
+                author={
+                  story.author_id ? authorsById.get(story.author_id) ?? null : null
+                }
+              />
+            ))}
 
-            <div>
-              {topRightStory ? (
-                <SecondaryOpinionCard
-                  story={topRightStory}
-                  author={
-                    topRightStory.author_id
-                      ? authorsById.get(topRightStory.author_id) ?? null
-                      : null
-                  }
-                />
-              ) : null}
-            </div>
+            {Array.from({ length: emptySlots }).map((_, index) => (
+              <EmptyOpinionCard key={`empty-${index}`} />
+            ))}
           </div>
-
-          {lowerStories.length > 0 ? (
-            <div className="mt-1 grid gap-1 md:grid-cols-2 xl:grid-cols-4">
-              {lowerStories.map((story) => (
-                <SecondaryOpinionCard
-                  key={story.id}
-                  story={story}
-                  author={
-                    story.author_id ? authorsById.get(story.author_id) ?? null : null
-                  }
-                />
-              ))}
-            </div>
-          ) : null}
-
-          {remainingStories.length > 0 ? (
-            <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {remainingStories.map((story) => (
-                <SecondaryOpinionCard
-                  key={story.id}
-                  story={story}
-                  author={
-                    story.author_id ? authorsById.get(story.author_id) ?? null : null
-                  }
-                />
-              ))}
-            </div>
-          ) : null}
-        </section>
-      ) : (
-        <section className="py-10">
+        ) : (
           <div className="border border-[#d8dce4] bg-[#eaf1f5] p-6 text-sm text-slate-600">
             No opinion stories published yet.
           </div>
-        </section>
-      )}
+        )}
+      </section>
     </main>
   );
 }
